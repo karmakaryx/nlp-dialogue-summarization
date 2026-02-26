@@ -121,7 +121,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 #### 2. Qualitative Glimpse
 > 비정형 데이터인 일상 대화이나 채팅 대화와 달리 약어나 이모지 없이 formal style을 가짐<br>
 
-> 화자 수: #Person 1# 부터 #Person7# 까지<br>
+> 화자 수: #Person1# 부터 #Person7# 까지<br>
 > 각각의 발화자를 구분하기 위해 #Person”N”#: 을 사용하며, 발화자의 대화가 끝나면 \n 으로 구분
 
 > 개인정보 마스킹 처리: 전화번호(#PhoneNumber#), 주소(#Address#), 생년월일(#DateOfBirth#), 여권번호(#PassportNumber#), 사회보장번호(#SSN#), 신용카드번호(#CardNumber#), 차량번호(#CarNumber#), 이메일주소(#Email#)
@@ -135,9 +135,18 @@ sudo apt update && sudo apt install -y fonts-nanum
 > 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다..😑
 ![longtail](./images/longtail.png)
 
-#### 4. Dialogue Inspection
+#### 4. 문자열 길이
+> 토픽이 너무 많아 문자열 길이도 제대로 볼 수가 없다! (겹쳐서 시꺼먼게 전부 무한 토픽들..)
+![violin_plot](./images/violin_plot.png)
+
+> 10건 이하 토픽을 그룹화하니 겨우 상황 파악 가능<br>
+> 평균 406자, 최소 84자, 최대 2,165자로 입력 데이터의 최대 길이가 model의 max length 크게 초과 (모델 교체 검토)<br>
+> 근데 또 10건 이하 토픽이 문자열 긴 놈도 유난히 많아요. 이상치 점이 선이 되고 있다..환장하것다..
+![box_plot](./images/box_plot.png)
+
+#### 5. Dialogue Inspection
 > 토픽별로 단어 빈도를 대략적으로 확인하기 위해 최다 토픽 5건에 대해 Word Clouds 시각화<br>
-> 일반적이거나 의미없는 단어들은 간단히 불용어사전을 작성해 필터링하니 주제별로 키워드가 확실히 보인다.<br>
+> 일반적이거나 의미없는 단어들은 간단한 불용어사전을 작성해 필터링하니 주제별로 키워드가 확실히 보인다.<br>
 > (예약했어요 손님 방이 인상적이다.. 아-파트아파트아-파트 🎶)
 
 ![topic1](./images/wordcloud_01.png)
@@ -149,12 +158,17 @@ sudo apt update && sudo apt install -y fonts-nanum
 <br>
 
 ### Data Preprocessing
-**1. 데이터의 구조적 무결성 검증 처리:** test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
+- test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
+- special_tokens에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 모두 추가
+
+---
+
+## **🔍 Hypothesis Testing**
 
 ---
 
 ## **🧠 Modeling**
-### Model Descrition
+### Model Description
 
 ### Modeling Process
 
@@ -208,9 +222,39 @@ sudo apt update && sudo apt install -y fonts-nanum
       <td align="center">19.3655</td>
       <td align="center">F</td>
     </tr>
+    <tr>
+      <td align="center">#04</td>
+      <td align="center">20260226</td>
+      <td>KoBART (digit82)</td>
+      <td>비정상 토큰 이슈 디버깅</td>
+      <td align="center">0.3824</td>
+      <td align="center">0.1746</td>
+      <td align="center">0.3056</td>
+      <td align="center">28.7529</td>
+      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td align="center">#05</td>
+      <td align="center">20260227</td>
+      <td>KoBART (digit82)</td>
+      <td>비정상 토큰 이슈 임시 해결</td>
+      <td align="center">0.5127</td>
+      <td align="center">0.3229</td>
+      <td align="center">0.4157</td>
+      <td align="center">41.7098</td>
+      <td align="center">S</td>
+    </tr>
   </tbody>
 </table>
-<br>
+
+---
+
+## **💡 Insights from Trial and Error**
+#### [#03. ROUGE 19.3655] nlp_ds_v1_yaml.py
+- **증상:** 화자 태그(#Person#)가 &lt;unused68&gt; 같은 비정상 토큰과 깨진 한자(㗡)로 도배되어 있음
+- **원인:** clean_up_tokenization_spaces=True 설정으로 인한 decoding sequence 왜곡 및 한자 생성
+- **조치:** 해당 옵션 제거 및 정규표현식을 통한 비정상 토큰 후처리 로직 도입
+- **교훈:** 한국어 특수 토큰 추가시 tokenizer의 자동 공백 정리 기능을 지양해야 함
 
 ---
 
@@ -234,10 +278,11 @@ sudo apt update && sudo apt install -y fonts-nanum
 - downgrade library versions
 
 ### V2: EDA
-> **nlp_ds_v2.py:**
+> **nlp_ds_v2_eda.py:**
+- 본격 EDA를 위해 Jupyter Notebook 파일로 분리
+- tokenizer 공백 자동 정리 로직 제거 & 정규표현식 후처리
 - model 중복 호출 제거
 - WandB 로그 범위 확대
-- 본격 EDA를 위해 Jupyter Notebook 파일로 분리
 
 > **eda.ipynb:**
 
