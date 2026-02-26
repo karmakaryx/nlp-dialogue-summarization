@@ -32,7 +32,7 @@ else:
     raise FileNotFoundError(f'{config_name} 파일이 존재하지 않습니다!')
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
-tokenizer = AutoTokenizer.from_pretrained(config['general']['model_name'], clean_up_tokenization_spaces=True)
+tokenizer = AutoTokenizer.from_pretrained(config['general']['model_name'])
 
 exp_name = file_name.removeprefix('nlp_ds_')
 now = datetime.now().strftime('%m%d-%H%M')
@@ -244,12 +244,11 @@ def load_tokenizer_and_model_for_train(config, device):
         ignore_mismatched_sizes=True,
     )
 
-    gen_config = GenerationConfig.from_model_config(generate_model.config)
-    gen_config.forced_eos_token_id = 2
-    generate_model.generation_config = gen_config
-    generate_model.config.forced_eos_token_id = None
-
     generate_model.resize_token_embeddings(len(tokenizer))
+
+    gen_config = GenerationConfig.from_model_config(generate_model.config)
+    generate_model.generation_config = gen_config
+
     generate_model.to(device)
     print(generate_model.config)
     print('-' * 10, 'Load tokenizer & model complete', '-' * 10)
@@ -305,10 +304,10 @@ def load_tokenizer_and_model_for_test(config, device):
         ignore_mismatched_sizes=True,
     )
 
-    gen_config = GenerationConfig.from_model_config(generate_model.config)
-    gen_config.forced_eos_token_id = 2
-    generate_model.generation_config = gen_config
     generate_model.config.forced_eos_token_id = None
+    gen_config = GenerationConfig.from_model_config(generate_model.config)
+    gen_config.forced_eos_token_id = None
+    generate_model.generation_config = gen_config
 
     generate_model.resize_token_embeddings(len(tokenizer))
     generate_model.to(device)
@@ -341,8 +340,11 @@ def inference(config):
             )
 
             for ids in generated_ids:
-                result = tokenizer.decode(ids)
-                summary.append(result)
+                result = tokenizer.decode(ids, skip_special_tokens=False)
+                result = result.split('\n')[0].strip()
+                result = re.sub(r'<[^>]+>', '', result) # 시스템 토큰(<...>) 삭제
+                result = re.sub(r'[^\uAC00-\uD7A30-9a-zA-Z\s.,?!#]', '', result) # 한글, 숫자, 영문, 공백, 마침표, # 외의 문자는 다 삭제
+                summary.append(result.strip())
 
     remove_tokens = config['inference']['remove_tokens']
     preprocessed_summary = summary.copy()
