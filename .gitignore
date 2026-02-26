@@ -403,11 +403,10 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/linux,windows,macos,python,jupyternotebooks,data,visualstudiocode,pycharm
 
 # Custom
-code/baseline.ipynb
-code/solar_api.ipynb
 data/
-wandb/
 experiments/
+images/
+wandb/
 *.tar
 *.pkl
 *.h5
