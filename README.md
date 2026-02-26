@@ -128,11 +128,12 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 #### 3. Topic Inspection
 > 전체 12,457건 대화 중 토픽이 (공백 정제 후에도) 9,235종에 달하는 심각한 분산 현상<br>
-> Treemap 결과, 전체 토픽 종류 (9,235종) 대비 약 87%, 전체 데이터 대비 약 64.5%가 1회성 토픽에 해당
+> Treemap 결과, 전체 토픽 종류 (9,235종) 대비 약 87% (8,041종), 전체 데이터 대비 약 64.5%가 1회성 토픽에 해당
+> Top 5: 음식 주문 (130), 취업 면접 (109), 길 안내 (66), 호텔 체크인 (40), 아파트 임대 (30)
 
 ![treemap](./images/treemap.jpg)
 
-> 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다..😑
+> 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다..🫥
 ![longtail](./images/longtail.png)
 
 #### 4. 문자열 길이
@@ -155,11 +156,16 @@ sudo apt update && sudo apt install -y fonts-nanum
 | ![topic2](./images/wordcloud_02.png) | ![topic3](./images/wordcloud_03.png) |
 | **Topic 4** | **Topic 5** |
 | ![topic4](./images/wordcloud_04.png) | ![topic5](./images/wordcloud_05.png) |
-<br>
+
+> 대화당 등장인원 통계를 내보니 최대 참여인원은 7명인데 7명까진 훼이크고 대부분 둘이 주고받는 대화다..<br>
+> 점점 통계 내는게 의미가 없는 기분이다. 😂<br>
+> 그러나 화자 태그 포맷 규칙, 개행 규칙이 위반된 대화 건(eda.ipynb 참조)들이 있어 data cleaning 필요
+![participants](./images/participants.png)
 
 ### Data Preprocessing
 - test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
 - special_tokens에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 모두 추가
+- data cleaning 관련
 
 ---
 
@@ -190,42 +196,20 @@ sudo apt update && sudo apt install -y fonts-nanum
   </thead>
   <tbody>
     <tr>
-      <td align="center">#01</td>
-      <td align="center">20260226</td>
-      <td>KoBART (digit82)</td>
-      <td>baseline code</td>
-      <td align="center">0.5676</td>
-      <td align="center">0.3737</td>
-      <td align="center">0.4807</td>
-      <td align="center">47.4018</td>
+      <td align="center">05</td>
+      <td align="center">260227</td>
+      <td>KoBART(digit82)</td>
+      <td>비정상 토큰 이슈 해결</td>
+      <td align="center">0.5127</td>
+      <td align="center">0.3229</td>
+      <td align="center">0.4157</td>
+      <td align="center">41.7098</td>
       <td align="center">S</td>
     </tr>
     <tr>
-      <td align="center">#02</td>
-      <td align="center">20260226</td>
-      <td>KoBART (digit82)</td>
-      <td>refactoring</td>
-      <td align="center">0.5691</td>
-      <td align="center">0.3760</td>
-      <td align="center">0.4808</td>
-      <td align="center">47.5295</td>
-      <td align="center">S</td>
-    </tr>
-    <tr>
-      <td align="center">#03</td>
-      <td align="center">20260226</td>
-      <td>KoBART (digit82)</td>
-      <td>config 분리</td>
-      <td align="center">0.2420</td>
-      <td align="center">0.1469</td>
-      <td align="center">0.1921</td>
-      <td align="center">19.3655</td>
-      <td align="center">F</td>
-    </tr>
-    <tr>
-      <td align="center">#04</td>
-      <td align="center">20260226</td>
-      <td>KoBART (digit82)</td>
+      <td align="center">04</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
       <td>비정상 토큰 이슈 디버깅</td>
       <td align="center">0.3824</td>
       <td align="center">0.1746</td>
@@ -234,18 +218,41 @@ sudo apt update && sudo apt install -y fonts-nanum
       <td align="center">F</td>
     </tr>
     <tr>
-      <td align="center">#05</td>
-      <td align="center">20260227</td>
-      <td>KoBART (digit82)</td>
-      <td>비정상 토큰 이슈 임시 해결</td>
-      <td align="center">0.5127</td>
-      <td align="center">0.3229</td>
-      <td align="center">0.4157</td>
-      <td align="center">41.7098</td>
+      <td align="center">03</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>config 분리</td>
+      <td align="center">0.2420</td>
+      <td align="center">0.1469</td>
+      <td align="center">0.1921</td>
+      <td align="center">19.3655</td>
+      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td align="center">02</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>refactoring</td>
+      <td align="center">0.5691</td>
+      <td align="center">0.3760</td>
+      <td align="center">0.4808</td>
+      <td align="center">47.5295</td>
+      <td align="center">S</td>
+    </tr>
+    <tr>
+      <td align="center">01</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>baseline code</td>
+      <td align="center">0.5676</td>
+      <td align="center">0.3737</td>
+      <td align="center">0.4807</td>
+      <td align="center">47.4018</td>
       <td align="center">S</td>
     </tr>
   </tbody>
 </table>
+![wandb_01](./assets/wandb_01.png)
 
 ---
 
@@ -255,6 +262,13 @@ sudo apt update && sudo apt install -y fonts-nanum
 - **원인:** clean_up_tokenization_spaces=True 설정으로 인한 decoding sequence 왜곡 및 한자 생성
 - **조치:** 해당 옵션 제거 및 정규표현식을 통한 비정상 토큰 후처리 로직 도입
 - **교훈:** 한국어 특수 토큰 추가시 tokenizer의 자동 공백 정리 기능을 지양해야 함
+
+---
+
+## **🚀 Result**
+### Champion Model Info
+
+### Leaderboard Rank: No. 1 🏆 ()
 
 ---
 
@@ -284,8 +298,6 @@ sudo apt update && sudo apt install -y fonts-nanum
 - model 중복 호출 제거
 - WandB 로그 범위 확대
 
-> **eda.ipynb:**
-
 ---
 
 ## **🛠️ etc.**
@@ -293,7 +305,11 @@ sudo apt update && sudo apt install -y fonts-nanum
 - [[GitHub] DialogSum: A Real-life Scenario Dialogue Summarization Dataset](https://github.com/cylnlp/dialogsum)
 - [[arXiv] DialogSum: A Real-Life Scenario Dialogue Summarization Dataset (Chen et al., ACL 2021)](https://arxiv.org/abs/2105.06762)
 - [[Kaggle] DialogSum Corpus: A Large-Scale Dataset for Dialogue Summarization and Topic Gen](https://www.kaggle.com/datasets/marawanxmamdouh/dialogsum/data)
+- Solar API
 
 ### 프로젝트 회고
+지난 CV 대회 때는 리더보드 점수 올리기에만 매몰되어 중도에 실험기록을 WandB에만 맡기는 바람에 산출물 작성시에 (정신도 몽롱한 상태에서) 애로사항이 좀 있었습니다.<br>
+따라서 이번 대회는 실험별, 버전별, 파일별로 어떤 변화가 있었는지 최대한 상세하게 기록하려고 노력했습니다.<br>
+여행에서 남는건 사진 뿐이고 코드로 말해야 할 엔지니어한테 남는건 README와 PDF 뿐인가 싶어 기분이 좀 그렇습니다만😑 기록은 그때그때 해놓는게 정신건강에 좋은 것 같습니다..<br>
 
 <br>
