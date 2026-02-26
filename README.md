@@ -32,7 +32,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 ## **📋 Competiton Info**
 ### DialogSum: A Real-life Scenario Dialogue Summarization (일상 대화 요약)
-- 실제 일상생활(학교생활, 직장, 치료, 쇼핑, 여가, 여행 등)에서 가능한 다양한 시나리오 multi-turn 대화를 바탕으로 생성 요약문 작성
+- 실제 일상생활(학교, 직장, 치료, 쇼핑, 여행 등)에서 가능한 다양한 시나리오 multi-turn 대화를 바탕으로 생성 요약문 작성
 - 목표: 정확하고 일반화된 모델을 개발하여 요약문 생성
 - 대화 스타일: 구어체 (최소 2명 ~ 최대 7명의 대화형식, 최소 2turn ~ 최대 60turn)
 - 대화 도메인: 다양한 주제
@@ -43,7 +43,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 - 검증데이터: 499건
 - 평가데이터: 499건
 - 제출파일: 499건 (sample_submission.csv)
-- 평가데이터는 학습데이터와 달리 dialogue 하나에 summary 3개가 존재
+- 평가데이터는 학습데이터와 달리 dialogue 하나에 summary 3개 존재
 
 ### Feature 구성
 - 학습데이터: fname (train_0부터), dialog, summary, topic
@@ -85,7 +85,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 │   ├── nlp_ds_v1_yaml.py      # config 분리
 │   ├── nlp_ds_v2_eda.py       # EDA 분리
 │   └── nlp_ds_v2_model.py     # 새 모델
-├── config/                    # .yaml file
+├── config/                    # yaml file
 │   ├── nlp_ds_v1_yaml.yaml    # 실행파일명과 동기화
 │   ├── ...
 │   └── nlp_ds_v2_model.yaml
@@ -138,7 +138,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 #### 4. Dialogue Inspection
 > 토픽별로 단어 빈도를 대략적으로 확인하기 위해 최다 토픽 5건에 대해 Word Clouds 시각화<br>
 > 일반적이거나 의미없는 단어들은 간단히 불용어사전을 작성해 필터링하니 주제별로 키워드가 확실히 보인다.<br>
-> (예약했어요 손님 방이 인상적이다.. 아-파트아파트아-파트🎶)
+> (예약했어요 손님 방이 인상적이다.. 아-파트아파트아-파트 🎶)
 
 ![topic1](./images/wordcloud_01.png)
 | Topic 2 | Topic 3 |
@@ -166,7 +166,6 @@ sudo apt update && sudo apt install -y fonts-nanum
     <tr>
       <th align="center">NO.</th>
       <th align="center">DATE</th>
-      <th align="center">FILE</th>
       <th align="center">MODEL</th>
       <th align="center">KEY CHANGES</th>
       <th align="center">R1</th>
@@ -179,7 +178,6 @@ sudo apt update && sudo apt install -y fonts-nanum
     <tr>
       <td align="center">#01</td>
       <td align="center">20260226</td>
-      <td>baseline</td>
       <td>KoBART (digit82)</td>
       <td>baseline code</td>
       <td align="center">0.5676</td>
@@ -191,7 +189,6 @@ sudo apt update && sudo apt install -y fonts-nanum
     <tr>
       <td align="center">#02</td>
       <td align="center">20260226</td>
-      <td>v1_baseline</td>
       <td>KoBART (digit82)</td>
       <td>refactoring</td>
       <td align="center">0.5691</td>
@@ -203,7 +200,6 @@ sudo apt update && sudo apt install -y fonts-nanum
     <tr>
       <td align="center">#03</td>
       <td align="center">20260226</td>
-      <td>v1_yaml</td>
       <td>KoBART (digit82)</td>
       <td>config 분리</td>
       <td align="center">0.2420</td>
@@ -220,14 +216,14 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 ## **📜 Version Log**
 ### V1: digit82/kobart-summarization
-> nlp_ds_v1_baseline.py:
+> **nlp_ds_v1_baseline.py:**
 - Jupyter Notebook을 Python script로 변환하며 발생하는 warnings & runtime errors 해결
 - code formatting: PEP 8 적용
 - code refactoring: 중복코드 제거 등
 - 하드웨어 사양에 라이브러리 최적화
 - 환경 설정: 데이터, 출력, 로그 경로 등
 
-> nlp_ds_v1_yaml.py:
+> **nlp_ds_v1_yaml.py:**
 - config 설정값 .yaml 파일로 관리
 - 학습데이터 기준으로 화자 수, 개인정보 마스킹 yaml에 추가
 - 실험명, 로그명, 환경파일명 등을 파일명, UTC와 동기화하여 자동화
@@ -238,12 +234,12 @@ sudo apt update && sudo apt install -y fonts-nanum
 - downgrade library versions
 
 ### V2: EDA
-> nlp_ds_v2.py:
+> **nlp_ds_v2.py:**
 - model 중복 호출 제거
 - WandB 로그 범위 확대
 - 본격 EDA를 위해 Jupyter Notebook 파일로 분리
 
-> eda.ipynb:
+> **eda.ipynb:**
 
 ---
 
