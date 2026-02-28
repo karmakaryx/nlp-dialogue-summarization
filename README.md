@@ -1,4 +1,4 @@
-# **[Natural Language Processing] Dialogue Summarization**
+![banner_nlp](./assets/banner_nlp.jpg)
 
 ## **💻 Project Overview**
 ### Environment
@@ -63,7 +63,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 ### 규정 (Rule)
 - DialogSum 데이터셋을 기반으로 한 모든 파생 데이터셋 및 파생 작업물 금지
-- 무료로 사용 가능한 API에 한정하여 사용 가능
+- 무료로 사용 가능한 API에 한정하여 사용 가능 (Solar 모델은 사용 가능)
 
 ### 평가지표 (Evaluation Metric)
 - ROUGE (Recall-Oriented Understudy for Gisting Evaluation)
