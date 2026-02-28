@@ -3,10 +3,11 @@
 ## **💻 Project Overview**
 ### Environment
 - **OS:** Linux Ubuntu 20.04.6 LTS
-- **GPU:** NVIDIA GeForce RTX 3090
-- **CUDA Version:** 12.2
+- **GPU:** NVIDIA GeForce RTX 3090 (24GB)
+- **NVIDIA Driver Version:** 535.86.10
+- **CUDA Version:** 12.2 (Runtime: 12.1)
 - **Tool:** VS Code (SSH)
-- **Language:** Python 3.11.14
+- **Language:** Python 3.10.14
 - **Prerequisites:** 한글 시각화를 위해 나눔 폰트 필요
 ```bash
 sudo apt update && sudo apt install -y fonts-nanum
@@ -14,9 +15,10 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 ### Requirements
 - accelerate==0.34.2
+- bitsandbytes==0.45.0
 - ipykernel==7.2.0
 - matplotlib==3.10.8
-- pandas==2.2.2
+- peft==0.12.0
 - plotly==6.5.2
 - python-dotenv==1.0.1
 - rouge==1.0.1
@@ -24,7 +26,8 @@ sudo apt update && sudo apt install -y fonts-nanum
 - torch==2.4.1
 - torchaudio==2.4.1
 - torchvision==0.19.1
-- transformers==4.44.2
+- transformers==4.46.1
+- trl==0.12.1
 - wandb==0.25.0
 - wordcloud==1.9.6
 
@@ -119,7 +122,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 > 중복 대화 확인: 0건
 
 #### 2. Qualitative Glimpse
-> 비정형 데이터인 일상 대화이나 채팅 대화와 달리 약어나 이모지 없이 formal style을 가짐<br>
+> 비정형 데이터인 일상 대화이나 채팅 대화와 달리 약어나 이모지 없이 formal style을 가짐
 
 > 화자 수: #Person1# 부터 #Person7# 까지<br>
 > 각각의 발화자를 구분하기 위해 #Person”N”#: 을 사용하며, 발화자의 대화가 끝나면 \n 으로 구분
@@ -128,7 +131,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 #### 3. Topic Inspection
 > 전체 12,457건 대화 중 토픽이 (공백 정제 후에도) 9,235종에 달하는 심각한 분산 현상<br>
-> Treemap 결과, 전체 토픽 종류 (9,235종) 대비 약 87% (8,041종), 전체 데이터 대비 약 64.5%가 1회성 토픽에 해당
+> Treemap 결과, 전체 토픽 종류 (9,235종) 대비 약 87% (8,041종), 전체 데이터 대비 약 64.5%가 1회성 토픽에 해당<br>
 > Top 5: 음식 주문 (130), 취업 면접 (109), 길 안내 (66), 호텔 체크인 (40), 아파트 임대 (30)
 
 ![treemap](./images/treemap.jpg)
@@ -169,7 +172,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 
 ---
 
-## **🔍 Hypothesis Testing**
+## **🕵️‍♀️ Hypothesis Testing**
 
 ---
 
@@ -305,6 +308,7 @@ sudo apt update && sudo apt install -y fonts-nanum
 - [[GitHub] DialogSum: A Real-life Scenario Dialogue Summarization Dataset](https://github.com/cylnlp/dialogsum)
 - [[arXiv] DialogSum: A Real-Life Scenario Dialogue Summarization Dataset (Chen et al., ACL 2021)](https://arxiv.org/abs/2105.06762)
 - [[Kaggle] DialogSum Corpus: A Large-Scale Dataset for Dialogue Summarization and Topic Gen](https://www.kaggle.com/datasets/marawanxmamdouh/dialogsum/data)
+- [[Hugging Face] KoSOLAR-10.7B-v0.2](https://huggingface.co/yanolja/KoSOLAR-10.7B-v0.2)
 - Solar API
 
 ### 프로젝트 회고
