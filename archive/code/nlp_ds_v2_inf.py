@@ -14,7 +14,7 @@ OS_PATH = os.getenv('OS_PATH')
 if not OS_PATH:
     raise ValueError('OS_PATH 환경변수가 설정되지 않았습니다!')
 
-file_name = "_".join(os.path.splitext(os.path.basename(__file__))[0].split("_")[:3])
+file_name = '_'.join(os.path.splitext(os.path.basename(__file__))[0].split('_')[:3])
 EXP_PATH = os.path.join(OS_PATH, 'experiments', file_name)
 CHECKPOINT_PATH = os.path.join(EXP_PATH, 'checkpoint-####') # Best Checkpoint 입력!
 DATA_PATH = os.path.join(OS_PATH, 'data')
@@ -68,7 +68,7 @@ def run_test():
 1. **문장의 주어(시작점):** 반드시 #Person1#, #Person2# 등의 기호를 사용합니다.
 2. **문장 속의 인물:** 주어가 아닌 다른 인물을 지칭할 때는 대화에 나온 실제 이름(예: Dave, Ann, 마이클)을 직접 사용하세요.
 3. **금지 사항:** '그', '그녀', '그들', '두 사람', '다른 사람' 같은 대명사는 절대 사용하지 않습니다.
-4. **어조:** "~합니다"로 끝나는 정중한 한국어 문장으로 작성하세요.
+4. **어조:** '~합니다'로 끝나는 정중한 한국어 문장으로 작성하세요.
 
 [예시]
 대화:
@@ -112,11 +112,10 @@ def run_test():
             for marker in stop_markers:
                 gen_text = gen_text.split(marker)[0]
 
-            gen_text = gen_text.replace("</s>", "").replace("<pad>", "").replace("<s>", "").replace("<|im_end|>", "").strip()
-            gen_text = gen_text.replace("그들은", "#Person1#과 #Person2#는")
-            gen_text = gen_text.replace("두 사람은", "#Person1#과 #Person2#는")
+            gen_text = gen_text.replace('</s>', '').replace('<pad>', '').replace('<s>', '').replace('<|im_end|>', '').strip()
+            gen_text = gen_text.replace('그들은', '#Person1#과 #Person2#는')
+            gen_text = gen_text.replace('두 사람은', '#Person1#과 #Person2#는')
 
-            # 영어 사족 제거
             gen_text = re.split(r'\. [A-Z]', gen_text)[0]
             if not gen_text.endswith('.'):
                 gen_text += '.'

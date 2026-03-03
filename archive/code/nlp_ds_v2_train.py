@@ -19,7 +19,7 @@ OS_PATH = os.getenv('OS_PATH')
 if not OS_PATH:
     raise ValueError('OS_PATH 환경변수가 설정되지 않았습니다!')
 
-file_name = "_".join(os.path.splitext(os.path.basename(__file__))[0].split("_")[:3])
+file_name = '_'.join(os.path.splitext(os.path.basename(__file__))[0].split('_')[:3])
 EXP_PATH = os.path.join(OS_PATH, 'experiments', file_name)
 DATA_PATH = os.path.join(OS_PATH, 'data')
 
@@ -61,11 +61,8 @@ class Preprocess:
         self.eos_token = eos_token
 
     def clean_dialogue(self, text: str) -> str:
-        # 1. 화자 태그 통합
         text = re.sub(r'#Person(\d+)#\s*(?::)?\s*', r'P\1: ', text)
-        # 2. 불필요한 공백 제거 (줄바꿈 보존)
         text = re.sub(r'[^\S\r\n]+', ' ', text)
-        # 3. 발화 시작점 줄바꿈 처리
         text = re.sub(r'(?<!\n)(P\d+:)', r'\n\1', text).strip()
         return text
 
@@ -94,7 +91,6 @@ class SummaryDataset(Dataset):
         input_ids = encodings['input_ids'].squeeze()
         labels = input_ids.clone()
 
-        # 프롬프트 마스킹 (Assistant 답변 부분만 학습하도록 설정)
         prompt_tokenized = self.tokenizer(dialogue_part, truncation=True, max_length=1024)
         prompt_len = len(prompt_tokenized['input_ids'])
 
@@ -128,14 +124,14 @@ def load_tokenizer_and_model_for_train(config):
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
+        bnb_4bit_quant_type='nf4',
         bnb_4bit_compute_dtype=torch.bfloat16
     )
 
     model = AutoModelForCausalLM.from_pretrained(
         config['general']['model_name'],
         quantization_config=bnb_config,
-        device_map="auto",
+        device_map='auto',
     )
 
     model.gradient_checkpointing_enable()

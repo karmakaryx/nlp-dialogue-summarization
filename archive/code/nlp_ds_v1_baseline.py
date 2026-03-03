@@ -345,10 +345,8 @@ def prepare_test_dataset(config, preprocessor, tokenizer):
     test_file_path = os.path.join(config['general']['data_path'], 'test.csv')
     test_data = preprocessor.make_set_as_df(test_file_path, is_train=False)
     test_id = test_data['fname']
-    print(f"test_data:\n{test_data['dialogue'][0]}")
 
     encoder_input_test = preprocessor.make_input(test_data, is_test=True)
-
     test_tokenized_encoder_inputs = tokenizer(
         encoder_input_test, return_tensors='pt', padding=True,
         add_special_tokens=True, truncation=True, max_length=config['tokenizer']['encoder_max_len'],
@@ -363,7 +361,6 @@ def load_tokenizer_and_model_for_test(config, device):
     model_name = config['general']['model_name']
     ckt_path = config['inference']['ckt_path']
 
-    print(f"model name: {model_name}")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     special_tokens_dict = {'additional_special_tokens': config['tokenizer']['special_tokens']}
     tokenizer.add_special_tokens(special_tokens_dict)
