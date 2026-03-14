@@ -1,4 +1,4 @@
-![banner_nlp](./assets/banner_nlp.jpg)
+![banner_nlp](./assets/banner_nlp.png)
 
 ## **💻 Project Overview**
 ### Environment
