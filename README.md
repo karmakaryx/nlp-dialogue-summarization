@@ -1,4 +1,4 @@
-![banner_nlp](./assets/banner_nlp.png)
+![banner_nlp](./assets/banner_nlp.jpg)
 
 ## **💻 Project Overview**
 ### Environment
@@ -85,18 +85,18 @@ apt update && apt install -y fonts-nanum
 ## **⚙️ Components**
 ### Directory
 ```
-├── archive/...                # legacy files
-├── assets/...                 # README images
+├── archive/...                # legacy files (v1 ~ v5)
+├── assets/...                 # README images & PDF
 ├── code/
 │   ├── eda.ipynb              # EDA
-│   ├── nlp_ds_v1_baseline.py  # baseline code
-│   ├── nlp_ds_v1_yaml.py      # config 분리
-│   ├── nlp_ds_v2_eda.py       # EDA 분리
-│   └── nlp_ds_v2_model.py     # 새 모델
+│   ├── nlp_ds_v6_fail.py      # v6 (GroupKFold)
+│   ├── nlp_ds_v6.py           # v6
+│   ├── nlp_ds_v7_final.py     # v7 (final)
+│   ├── solar_api_summary.py   # Solar API call (summary)
+│   └── solar_api_topic.py     # Solar API call (topic)
 ├── config/                    # yaml file
-│   ├── nlp_ds_v1_yaml.yaml    # 실행파일명과 동기화
-│   ├── ...
-│   └── nlp_ds_v2_model.yaml
+│   ├── nlp_ds_v6.yaml         # 실행파일명과 동기화
+│   └── nlp_ds_v7_final.yaml
 ├── data/                      # (이하 GitHub 관리안함)
 │   ├── dev_solar.csv          # Solar API로 증강한 dev summary & topic
 │   ├── dev.csv                # 검증데이터
@@ -115,3 +115,8 @@ apt update && apt install -y fonts-nanum
 ├── README.md
 └── requirements.txt
 ```
+
+---
+
+## **💾 Data Descrption**
+### EDA (Exploratory Data Analysis)
