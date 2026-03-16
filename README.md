@@ -206,7 +206,7 @@ apt update && apt install -y fonts-nanum
 ### Data Preprocessing
 - test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
 - special_tokens에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 일괄 등록하여 embedding layer 일치
-- data cleaning: 줄바꿈 누락 10건 전처리, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건 전처리
+- data cleaning: 줄바꿈 누락 10건, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건, '\\n'와 같은 데이터 노이즈
 - 대화문과 요약문간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화 문자열 길이에 따라 요약문의 길이 제한
 
 ---
@@ -241,31 +241,146 @@ apt update && apt install -y fonts-nanum
 ---
 
 ## **🕵️‍♀️ Hypothesis Testing**
-### 1. 요약문 스타일 통일
+#### 1. 요약문 스타일 통일
 - **가설:** "~합니다." "~한다." "~함." 등의 불규칙한 어미를 일치시키면 ROUGE가 오르지 않을까?
-- **결과:** 동일 코드에 어미만 변경시 평가 ROUGE 오히려 하락
+- **결과:** 동일 코드에 어미만 변경시 리더보드 점수 오히려 하락
 
-### 2. 맞춤법 & 띄어쓰기 통일
+#### 2. 맞춤법 & 띄어쓰기 통일
 - **가설:** 조사 '은/는'을 화자 태그 발음에 맞게 일관화 (예: #Person1#은), 화자 태그와 조사 사이에 생성되는 빈칸 정규식으로 제거
-- **결과:** 리더보드 점수 여전히 하락, 그럼 GT에 일관성이 없다는건데.. 러시안룰렛이여? 데이터의 품질 검수가 제대로 이루어진 건지 의문
+- **결과:** 리더보드 점수 여전히 하락, 그럼 GT에 일관성이 없다는건데.. 러시안룰렛이여?
+  데이터의 품질 검수가 제대로 이루어진 건지 의문
 
-### 3. 대화문 길이에 따른 요약문 길이 조정
-- **가설:** 대화문이 길면 요약문도 길어진다면 요약문의 길이를 대화문 길이에 맞춰 제한을 두면 어떨까?
-- **결과:** 상관계수 0.74로 가능성 있음, quantile 10%씩으로 세분화하여 적용 후 ROUGE 상승
+#### 3. 대화문 길이에 따른 요약문 길이 조정
+- **가설:** 대화문에 비례하여 요약문도 길어진다면 요약문의 길이를 대화문 길이에 맞춰 제한을 두면 어떨까?
+- **결과:** 상관계수 0.74로 가능성 있음, 통계 기반의 11단계 동적 길이 제어 후 ROUGE 상승
 
-### 4. ROUGE-2의 중요도 높이기
-- **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수를 내기 힘들고 실제로도 매우 낮으므로 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
+#### 4. ROUGE-2의 중요도 높이기
+- **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수 내기 힘들고 실제로도 매우 낮으므로 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
 - **결과:** MBR 가중치 적용 후 ROUGE 상승
 
-### 5. 테스트데이터에 topic 생성
+#### 5. 테스트데이터에 topic 생성
 - **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 테스트데이터에도 topic을 생성해 어떤 대화인지 모델에게 힌트를 주고 키워드로써 유도시켜 보면 어떨까?
 - **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 테스트데이터에 추가, ROUGE 상승
 
-### 6. 이외 매우 많으나 지면 관계로 생략
+#### 6. 이외 매우 많으나 지면 관계로 생략
 
 ---
 
 ## **💡 Insights from Trial and Error**
+- 데이터 결측치 있는 줄 알고 삽질함
+- 라이브러리 궁합 맞추기: 모델을 올리니 필요한 라이브러리와 기존 torch가 궁합이 안 맞음, CU124, CU121인데 bitandbytes가 너무 높아서 3번 고침
+- 검증에는 형태소 분석기가 없어 로컬 점수와 리더보드 점수가 같이 움직이는지 정확한 correlation 확인 불가
+- 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 가설을 대부분 포기해야 했다. 파라미터가 107억개는 너무 큰 도박이었다. 저게 107억원이 아닌 이상 모험하지 마라.
+- 데이터가 쓰레기일 때(Garbage In), 모델이 얼마나 고통받는가(Garbage Out): 나만 데이터클렌징 하면 뭐하나 ground truth가 오염됐는데ㅠ
+
+---
+
+## **📊 Experiment Logger**
+<table>
+  <thead>
+    <tr>
+      <th align="center">NO.</th>
+      <th align="center">DATE</th>
+      <th align="center">MODEL</th>
+      <th align="center">KEY CHANGES</th>
+      <th align="center">R1</th>
+      <th align="center">R2</th>
+      <th align="center">RL</th>
+      <th align="center" colspan="2">SCORE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">08</td>
+      <td align="center">260303</td>
+      <td>KoBART(digit82)</td>
+      <td>망함</td>
+      <td align="center">0.3586</td>
+      <td align="center">0.1555</td>
+      <td align="center">0.2901</td>
+      <td align="center">26.8082</td>
+      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td align="center">07</td>
+      <td align="center">260302</td>
+      <td>KoSOLAR(yanolja)</td>
+      <td>망함</td>
+      <td align="center">0.3586</td>
+      <td align="center">0.1555</td>
+      <td align="center">0.2901</td>
+      <td align="center">26.8082</td>
+      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td align="center">06</td>
+      <td align="center">260227</td>
+      <td>V2:eda2</td>
+      <td>아몰랑랑</td>
+      <td align="center">0.4885</td>
+      <td align="center">0.2913</td>
+      <td align="center">0.3991</td>
+      <td align="center">39.2972</td>
+      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td align="center">05</td>
+      <td align="center">260227</td>
+      <td>KoBART(digit82)</td>
+      <td>비정상 토큰 이슈 해결</td>
+      <td align="center">0.5127</td>
+      <td align="center">0.3229</td>
+      <td align="center">0.4157</td>
+      <td align="center">41.7098</td>
+      <td align="center">S</td>
+    </tr>
+    <tr>
+      <td align="center">04</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>비정상 토큰 이슈 디버깅</td>
+      <td align="center">0.3824</td>
+      <td align="center">0.1746</td>
+      <td align="center">0.3056</td>
+      <td align="center">28.7529</td>
+      <td align="center">S</td>
+    </tr>
+    <tr>
+      <td align="center">03</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>config 분리</td>
+      <td align="center">0.2420</td>
+      <td align="center">0.1469</td>
+      <td align="center">0.1921</td>
+      <td align="center">19.3655</td>
+      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td align="center">02</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>refactoring</td>
+      <td align="center">0.5691</td>
+      <td align="center">0.3760</td>
+      <td align="center">0.4808</td>
+      <td align="center">47.5295</td>
+      <td align="center">S</td>
+    </tr>
+    <tr>
+      <td align="center">01</td>
+      <td align="center">260226</td>
+      <td>KoBART(digit82)</td>
+      <td>baseline code</td>
+      <td align="center">0.5676</td>
+      <td align="center">0.3737</td>
+      <td align="center">0.4807</td>
+      <td align="center">47.4018</td>
+      <td align="center">S</td>
+    </tr>
+  </tbody>
+</table>
+![wandb_01](./assets/wandb_01.png)
 
 ---
 
@@ -282,13 +397,43 @@ apt update && apt install -y fonts-nanum
 
 ---
 
+## **📜 Version Log**
+### V1: digit82/kobart-summarization
+> **nlp_ds_v1_baseline.py:**
+- Jupyter Notebook을 Python script로 변환하며 발생하는 warnings & runtime errors 해결
+- code formatting: PEP 8 적용
+- code refactoring: 중복코드 제거 등
+- 하드웨어 사양에 라이브러리 최적화
+- 환경 설정: 데이터, 출력, 로그 경로 등
+
+> **nlp_ds_v1_yaml.py:**
+- config 설정값 .yaml 파일로 관리
+- "명명된 개체 보존":을 위해 모두 넣었다 학습데이터 기준으로 화자 수, 개인정보 마스킹 yaml에 추가
+- 실험명, 로그명, 환경파일명 등을 파일명, UTC와 동기화하여 자동화
+- WandB로 checkpoint upload 중지
+- hyperparameter 수정: batch size, gradient steps
+- 데이터 로딩 방식 변경: on-the-fly tokenization
+- tokenizer 공백 자동 정리 적용
+- downgrade library versions
+
+### V2: EDA
+> **nlp_ds_v2_eda.py:**
+- 본격 EDA를 위해 Jupyter Notebook 파일로 분리
+- tokenizer 공백 자동 정리 로직 제거 & 정규표현식 후처리
+- model 중복 호출 제거
+- WandB 로그 범위 확대
+
+---
+
 ## **🛠️ etc.**
 ### Reference
 - [[GitHub] DialogSum: A Real-life Scenario Dialogue Summarization Dataset](https://github.com/cylnlp/dialogsum)
 - [[arXiv] DialogSum: A Real-Life Scenario Dialogue Summarization Dataset (Chen et al., ACL 2021)](https://arxiv.org/abs/2105.06762)
 - [[Kaggle] DialogSum Corpus: A Large-Scale Dataset for Dialogue Summarization and Topic Gen](https://www.kaggle.com/datasets/marawanxmamdouh/dialogsum/data)
 - [[Hugging Face] KoSOLAR-10.7B-v0.2](https://huggingface.co/yanolja/KoSOLAR-10.7B-v0.2)
-- [Solar API](https://console.upstage.ai/api/chat)
-- [Optuna library](https://optuna.org/)
+- [[Solar API] https://console.upstage.ai/api/chat](https://console.upstage.ai/api/chat)
+- [[Optuna library] https://optuna.org/](https://optuna.org/)
 
 ### 프로젝트 회고
+이번 대회는 아무리 논리적으로 합당한 가설을 시도해도 점수가 더 떨어지는 특이한 대회였는데요, 영어처럼 단어별로 띄어쓰기가 명확히 분리되지 않고 조사와 동사 어미 변화가 심한 한국어와 ROUGE 평가지표가 궁합이 맞지 않는게 첫번째 원인이 아니었나 싶습니다. 어쩌면 이 대회는 현실세계 데이터가 얼마나 지저분하고 종잡을 수 없는지, 언어라는게 얼마나 유동적이고 변칙적인지, 좋은 NLP 모델을 만드는게 얼마나 힘들고 수많은 랜덤 변수를 고려해야 하는지, 이론과 실제가 얼마나 다른지 그 실전의 쓴맛을 체험시켜 주는게 목적이었던 대회가 아니었나 싶습니다ㅠ
+<br>
