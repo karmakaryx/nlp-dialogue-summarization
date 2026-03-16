@@ -118,11 +118,11 @@ apt update && apt install -y fonts-nanum
 
 ---
 
-## **💾 Data Descrption**
+## **💾 Data Description**
 ### EDA (Exploratory Data Analysis)
 #### 1. 데이터의 구조적 무결성 검증
 > 훈련데이터의 마지막 인덱스 번호(0-12459)와 안내된 건수(12457)가 불일치해 fname 누락 여부 검사<br>
-> fname에서 숫자 추출하여 0부터 최댓값까지의 집합과 실제 데이터 집합 간의 차집합 연산을 훈련, 검증, 평가 데이터에 모두 수행<br>
+> fname에서 숫자 추출하여 0부터 최댓값까지의 집합과 실제 데이터 집합 간의 차집합 연산을 훈련, 검증, 평가데이터에 모두 수행<br>
 > 인덱스 결측치에 의한 불연속성 확인 (훈련 3건 [10933, 10972, 11473], 검증 1건 [475], 평가 1건 [466])
 
 > 중복 대화 확인: 0건
@@ -206,8 +206,8 @@ apt update && apt install -y fonts-nanum
 ### Data Preprocessing
 - test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
 - special_tokens에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 일괄 등록하여 embedding layer 일치
-- data cleaning: 줄바꿈 누락 10건, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건, '\\n'와 같은 데이터 노이즈
-- 대화문과 요약문간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화 문자열 길이에 따라 요약문의 길이 제한
+- data cleaning: 줄바꿈 누락 10건, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건, `\\n`와 같은 데이터 노이즈 전처리
+- 대화문과 요약문간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화문 길이에 따라 요약문 길이 제한
 
 ---
 
@@ -231,19 +231,20 @@ apt update && apt install -y fonts-nanum
 - full seed fixing (CUDA 결정론적 알고리즘 적용)
 - 최대 문자열까지 안정적으로 담기 위해 encoder 1024, decoder 256 변경
 - 일반화 성능을 향상하고 검증데이터를 증강에 활용하기 위해 K-Fold 적용
-- hyper-parameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
+- hyper-parameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인,
+  요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
 - 문장 길이 관련 hyper-parameter를 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, repetition_penalty, early_stopping)
 - 그래도 문장이 끊기는 경우 종결 문장 부호를 기준으로 정규식을 적용하여 제거
 - ROUGE 중요도에 따라 MBR (Minimum Bayes Risk) 가중치 적용
 - 문자열 길이가 75% 이상이 되면 급격히 늘어나므로 이상치로 간주, MBR 가중치 적용 후보군에서 제외
-- Solar API 활용, 학습데이터처럼 topic 컬럼을 테스트데이터에도 생성, 모델이 topic을 통해 대화내용을 추정하도록 유도
+- Solar API 활용, 학습데이터처럼 topic 컬럼을 테스트데이터에도 생성, 모델이 topic을 통해 대화내용을 미리 추정하도록 유도
 
 ---
 
 ## **🕵️‍♀️ Hypothesis Testing**
 #### 1. 요약문 스타일 통일
-- **가설:** "~합니다." "~한다." "~함." 등의 불규칙한 어미를 일치시키면 ROUGE가 오르지 않을까?
-- **결과:** 동일 코드에 어미만 변경시 리더보드 점수 오히려 하락
+- **가설:** "~합니다." "~한다." "~함." 등의 불규칙한 동사 어미를 일치시키면 ROUGE가 오르지 않을까?
+- **결과:** 동일 코드에 동사 어미만 변경시 리더보드 점수 오히려 하락
 
 #### 2. 맞춤법 & 띄어쓰기 통일
 - **가설:** 조사 '은/는'을 화자 태그 발음에 맞게 일관화 (예: #Person1#은), 화자 태그와 조사 사이에 생성되는 빈칸 정규식으로 제거
@@ -252,23 +253,37 @@ apt update && apt install -y fonts-nanum
 
 #### 3. 대화문 길이에 따른 요약문 길이 조정
 - **가설:** 대화문에 비례하여 요약문도 길어진다면 요약문의 길이를 대화문 길이에 맞춰 제한을 두면 어떨까?
-- **결과:** 상관계수 0.74로 가능성 있음, 통계 기반의 11단계 동적 길이 제어 후 ROUGE 상승
+- **결과:** 상관계수 0.74로 가능성 있음, 통계 기반의 11단계 동적 길이 제어 후 리더보드 점수 상승
 
-#### 4. ROUGE-2의 중요도 높이기
+#### 4. ROUGE의 중요도에 따른 가중치 적용
 - **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수 내기 힘들고 실제로도 매우 낮으므로 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
-- **결과:** MBR 가중치 적용 후 ROUGE 상승
+- **결과:** ROUGE-2 > ROUGE-L > ROUGE-1 순으로 MBR 가중치 적용 후 리더보드 점수 퀀텀점프
 
 #### 5. 테스트데이터에 topic 생성
 - **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 테스트데이터에도 topic을 생성해 어떤 대화인지 모델에게 힌트를 주고 키워드로써 유도시켜 보면 어떨까?
-- **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 테스트데이터에 추가, ROUGE 상승
+- **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 테스트데이터에 추가, 리더보드 점수 상승
 
 #### 6. 이외 매우 많으나 지면 관계로 생략
 
 ---
 
 ## **💡 Insights from Trial and Error**
+#### nlp_ds_v1_baseline.py
+- **증상:** code refectoring 후 검증 점수가 0.1940로 떨어짐
+- **원인:** ROUGE 대신 ROUGE Score 라이브러리를 사용함
+- **조치:** 운영진 평가 기준인 ROUGE 라이브러리의 동일 버전으로 원복
+- **교훈:** 누가 요즘은 ROUGE 안쓰고 ROUGE Score 쓴다고 했냐! 둘은 평가 결과가 다르고 대회의 룰은 무조건 지킵시다.
+
+#### nlp_ds_v1_yaml.py
+- **증상:** 화자 태그(#Person#)가 &lt;unused68&gt; 같은 비정상 토큰과 깨진 한자(㗡)로 도배되어 있음
+- **원인:** clean_up_tokenization_spaces=True 설정으로 인한 decoding sequence 왜곡 및 한자 생성
+- **조치:** 해당 옵션 제거 및 정규표현식을 통한 비정상 토큰 후처리 로직 도입
+- **교훈:** 한국어 특수 토큰 추가시 tokenizer의 자동 공백 정리 기능을 지양해야 함
+
 - 데이터 결측치 있는 줄 알고 삽질함
 - 라이브러리 궁합 맞추기: 모델을 올리니 필요한 라이브러리와 기존 torch가 궁합이 안 맞음, CU124, CU121인데 bitandbytes가 너무 높아서 3번 고침
+일단 OOM 잡는데만도 한참 걸렸다. 하이퍼파라미터 계속 튜닝해서 한 8번만에 성공.
+그래도 BART에서 길어야 40분 걸렸던 학습이 1에폭으로 줄였는데도 6시간 이상.
 - 검증에는 형태소 분석기가 없어 로컬 점수와 리더보드 점수가 같이 움직이는지 정확한 correlation 확인 불가
 - 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 가설을 대부분 포기해야 했다. 파라미터가 107억개는 너무 큰 도박이었다. 저게 107억원이 아닌 이상 모험하지 마라.
 - 데이터가 쓰레기일 때(Garbage In), 모델이 얼마나 고통받는가(Garbage Out): 나만 데이터클렌징 하면 뭐하나 ground truth가 오염됐는데ㅠ
@@ -387,7 +402,7 @@ apt update && apt install -y fonts-nanum
 ## **🚀 Result**
 ### Champion Model Info
 - **Version:** V7 (KoBART)
-- **Training Time:** 5h 30m
+- **Training Time:** 5h 30m (approx. 1h per fold)
 - **Time per Epoch:** 3m 23s
 - **Accuracy:** 49.2834
 
@@ -408,7 +423,7 @@ apt update && apt install -y fonts-nanum
 
 > **nlp_ds_v1_yaml.py:**
 - config 설정값 .yaml 파일로 관리
-- "명명된 개체 보존":을 위해 모두 넣었다 학습데이터 기준으로 화자 수, 개인정보 마스킹 yaml에 추가
+- 명명된 개체 보존을 위해 학습데이터 기준으로 화자 수, 개인정보 마스킹 yaml에 모두 추가
 - 실험명, 로그명, 환경파일명 등을 파일명, UTC와 동기화하여 자동화
 - WandB로 checkpoint upload 중지
 - hyperparameter 수정: batch size, gradient steps
@@ -416,12 +431,13 @@ apt update && apt install -y fonts-nanum
 - tokenizer 공백 자동 정리 적용
 - downgrade library versions
 
-### V2: EDA
+### V2: yanolja/KoSOLAR-10.7B-v0.2
 > **nlp_ds_v2_eda.py:**
 - 본격 EDA를 위해 Jupyter Notebook 파일로 분리
 - tokenizer 공백 자동 정리 로직 제거 & 정규표현식 후처리
 - model 중복 호출 제거
 - WandB 로그 범위 확대
+- 이후 Solar 10.7B 적용 과정에서 5일을 소모하고도 실험이 완전히 실패하는 바람에 시간에 쫓겨 버전별 로그 작성 시간 확보 불가, 자세한 버전별 변경사항은 archive와 code 디렉토리 참조
 
 ---
 
