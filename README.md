@@ -122,21 +122,20 @@ apt update && apt install -y fonts-nanum
 ### EDA (Exploratory Data Analysis)
 #### 1. 데이터의 구조적 무결성 검증
 > 훈련데이터의 마지막 인덱스 번호(0-12459)와 안내된 건수(12457)가 불일치해 fname 누락 여부 검사<br>
-> fname에서 숫자 추출하여 0부터 최댓값까지의 집합과 실제 데이터 집합 간의 차집합 연산을 훈련, 검증, 평가 데이터 모두 수행<br>
+> fname에서 숫자 추출하여 0부터 최댓값까지의 집합과 실제 데이터 집합 간의 차집합 연산을 훈련, 검증, 평가 데이터에 모두 수행<br>
 > 인덱스 결측치에 의한 불연속성 확인 (훈련 3건 [10933, 10972, 11473], 검증 1건 [475], 평가 1건 [466])
 
 > 중복 대화 확인: 0건
 
 #### 2. Qualitative Glimpse
 > 비정형 데이터인 일상 대화지만 채팅 대화와 달리 약어나 이모지 없이 formal style을 가짐<br>
-> 대화 중 이름 및 고유명사 표기가 영어와 한글이 섞여있음. Mr. Mrs. 등의 호칭도 자주 사용하나 역시 '씨'와 일관성 없이 섞여있음.<br>
-> 고유명사를 제외하면 기본적으로 한국어 대화이며, 영어를 포함한 다른 언어 대화는 없으나 DialogSum 원본이 영문이라 어색한 번역체<br>
-> (아마도) 중국계 미국인이 만든 데이터셋이라 금액은 달러 또는 위안으로 표기. 달러는 $로도 표기됨 (역시 중구난방)<br>
-> 각각의 발화자를 구분하기 위해 #Person"N"#: 을 사용하며, 발화자의 대화가 끝나면 \n 으로 구분
+> 대화 중 이름 및 고유명사 표기가 영어와 한글이 섞여있음. Mr. Mrs. 등의 호칭도 자주 사용하나 '씨'와 일관성 없이 섞여있음.<br>
+> 고유명사를 제외하면 기본적으로 한국어 대화이며, 다른 언어 대화는 없으나 DialogSum 원본이 영문이라 어색한 번역체<br>
+> (아마도) 중국계 미국인이 만든 데이터셋이라 금액은 달러 또는 위안으로 표기. 달러는 $로도 표기됨 (역시 중구난방)
 
 > 개인정보 마스킹 처리: 전화번호(#PhoneNumber#), 주소(#Address#), 생년월일(#DateOfBirth#), 여권번호(#PassportNumber#), 사회보장번호(#SSN#), 신용카드번호(#CardNumber#), 차량번호(#CarNumber#), 이메일주소(#Email#)
 
-#### 3. 대화문 & 요약문 분석
+#### 3. Dialogue & Summary Inspection
 > **대화문 길이 (학습):**  평균 406, 최소 84, 최대 2165<br>
 > **대화문 길이 (검증):**  평균 400, 최소 114, 최대 1269<br>
 > **대화문 길이 (평가):**  평균 419, 최소 111, 최대 2213
@@ -158,7 +157,8 @@ apt update && apt install -y fonts-nanum
 > **요약문 문장 수 통계**
 ![summary_count](./images/summary_count.png)
 
-#### 4. Turn & 화자수
+#### 4. Turn & 화자(speaker) 수
+> 각각의 발화자를 구분하기 위해 #Person"N"#: 을 사용하며, 발화자의 대화가 끝나면 \n 으로 구분<br>
 > 턴 변경시 줄바꿈 규칙 누락: 5건<br>
 > 최소 턴수: 2 / 최대 턴수: 59
 
@@ -169,8 +169,9 @@ apt update && apt install -y fonts-nanum
 ![correlation_turn](./images/correlation_turn.png)
 
 > **화자 수**<br>
-> 학습: #Person1# 부터 #Person7# 까지 (평균 참여 인원: 2명)<br>
-> 테스트: #Person1# 부터 #Person3# 까지<br>
+> 학습: #Person1# 부터 #Person7# 까지 / 테스트: #Person1# 부터 #Person3# 까지<br>
+> 대화당 등장인원 통계를 내보니 최대 참여인원 7명까진 훼이크고 대부분 둘이 주고받는 대화다..<br>
+> 점점 통계 내는게 의미가 없는 기분이다. 😂
 ![participants](./images/participants.png)
 
 #### 5. Topic Inspection
@@ -180,6 +181,24 @@ apt update && apt install -y fonts-nanum
 
 ![treemap](./images/treemap.jpg)
 
-> 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다..🫥<br>
+> 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다. 🫥<br>
 > 다시 말해 토픽 분류에 의해 어떤 인사이트를 기대하는건 의미가 없다는 얘기다. 그래도 일단은 파본다.
 ![longtail](./images/longtail.png)
+
+> 토픽이 너무 많아 토픽 대비 문자열 길이도 제대로 볼 수가 없다! (겹쳐서 시꺼먼게 전부 무한 토픽들..)
+![violin_plot](./images/violin_plot.png)
+
+> 10건 이하 토픽을 그룹화하니 겨우 상황 파악 가능: 평균 406자, 최소 84자, 최대 2,165자<br>
+> 근데 또 10건 이하 토픽이 문자열 긴 놈도 유난히 많아요. 이상치 점이 선이 되고 있다..
+![box_plot](./images/box_plot.png)
+
+> 토픽별로 단어 빈도를 대략적으로 확인하기 위해 최다 토픽 5건에 대해 Word Clouds 시각화<br>
+> 일반적이거나 의미없는 단어들은 간단한 불용어사전을 작성해 필터링하니 주제별로 키워드가 확실히 보인다.<br>
+> (예약했어요 손님 방이 인상적이다.. 아-파트아파트아-파트 🎶)
+
+![topic1](./images/wordcloud_01.png)
+| Topic 2 | Topic 3 |
+| :---: | :---: |
+| ![topic2](./images/wordcloud_02.png) | ![topic3](./images/wordcloud_03.png) |
+| **Topic 4** | **Topic 5** |
+| ![topic4](./images/wordcloud_04.png) | ![topic5](./images/wordcloud_05.png) |
