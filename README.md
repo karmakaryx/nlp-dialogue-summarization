@@ -182,7 +182,7 @@ apt update && apt install -y fonts-nanum
 ![treemap](./images/treemap.jpg)
 
 > 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다. 🫥<br>
-> 다시 말해 토픽 분류에 의해 어떤 인사이트를 기대하는건 의미가 없다는 얘기다. 그래도 일단은 파본다.
+> 다시 말해 토픽 분류에 의해 어떤 인사이트를 기대할 수 없다는 얘기다. 그래도 일단은 파본다.
 ![longtail](./images/longtail.png)
 
 > 토픽이 너무 많아 토픽 대비 문자열 길이도 제대로 볼 수가 없다! (겹쳐서 시꺼먼게 전부 무한 토픽들..)
@@ -202,3 +202,93 @@ apt update && apt install -y fonts-nanum
 | ![topic2](./images/wordcloud_02.png) | ![topic3](./images/wordcloud_03.png) |
 | **Topic 4** | **Topic 5** |
 | ![topic4](./images/wordcloud_04.png) | ![topic5](./images/wordcloud_05.png) |
+
+### Data Preprocessing
+- test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
+- special_tokens에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 일괄 등록하여 embedding layer 일치
+- data cleaning: 줄바꿈 누락 10건 전처리, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건 전처리
+- 대화문과 요약문간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화 문자열 길이에 따라 요약문의 길이 제한
+
+---
+
+## **🧠 Modeling**
+### Model Description
+#### 1. KoBART (digit82/kobart-summarization)
+- 파라미터: 약 1.2억 개(124M)
+- 구조: Encoder-Decoder (Seq2Seq)
+- 학습목표: 노이즈 복구 (Denoising)
+- digit82: 정형화된 뉴스/문서 요약
+- 단점: 문맥 유지 및 추론 능력이 부족하고 지시 수행에 한계
+
+#### 2. Upstage Solar (yanolja/KoSOLAR-10.7B-v0.2) + QLoRA
+- 파라미터: 107억 개 (10.7B)
+- 구조: Decoder-only (Causal LM)
+- 학습목표: 다음 토큰 예측 (Next Token Prediction)
+- yanolja: Upstage 기술력 + 야놀자의 여행, 숙박 데이터로 학습시켜 한국어 문맥 파악 능력과 지시사항 이행 능력 우수
+- 단점: LLM급 괴물 덩치라 1epoch 돌려보고 fine tuning 포기 (3090 기준 28시간..)
+
+### Modeling Process
+- full seed fixing (CUDA 결정론적 알고리즘 적용)
+- 최대 문자열까지 안정적으로 담기 위해 encoder 1024, decoder 256 변경
+- 일반화 성능을 향상하고 검증데이터를 증강에 활용하기 위해 K-Fold 적용
+- hyper-parameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
+- 문장 길이 관련 hyper-parameter를 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, repetition_penalty, early_stopping)
+- 그래도 문장이 끊기는 경우 종결 문장 부호를 기준으로 정규식을 적용하여 제거
+- ROUGE 중요도에 따라 MBR (Minimum Bayes Risk) 가중치 적용
+- 문자열 길이가 75% 이상이 되면 급격히 늘어나므로 이상치로 간주, MBR 가중치 적용 후보군에서 제외
+- Solar API 활용, 학습데이터처럼 topic 컬럼을 테스트데이터에도 생성, 모델이 topic을 통해 대화내용을 추정하도록 유도
+
+---
+
+## **🕵️‍♀️ Hypothesis Testing**
+### 1. 요약문 스타일 통일
+- **가설:** "~합니다." "~한다." "~함." 등의 불규칙한 어미를 일치시키면 ROUGE가 오르지 않을까?
+- **결과:** 동일 코드에 어미만 변경시 평가 ROUGE 오히려 하락
+
+### 2. 맞춤법 & 띄어쓰기 통일
+- **가설:** 조사 '은/는'을 화자 태그 발음에 맞게 일관화 (예: #Person1#은), 화자 태그와 조사 사이에 생성되는 빈칸 정규식으로 제거
+- **결과:** 리더보드 점수 여전히 하락, 그럼 GT에 일관성이 없다는건데.. 러시안룰렛이여? 데이터의 품질 검수가 제대로 이루어진 건지 의문
+
+### 3. 대화문 길이에 따른 요약문 길이 조정
+- **가설:** 대화문이 길면 요약문도 길어진다면 요약문의 길이를 대화문 길이에 맞춰 제한을 두면 어떨까?
+- **결과:** 상관계수 0.74로 가능성 있음, quantile 10%씩으로 세분화하여 적용 후 ROUGE 상승
+
+### 4. ROUGE-2의 중요도 높이기
+- **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수를 내기 힘들고 실제로도 매우 낮으므로 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
+- **결과:** MBR 가중치 적용 후 ROUGE 상승
+
+### 5. 테스트데이터에 topic 생성
+- **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 테스트데이터에도 topic을 생성해 어떤 대화인지 모델에게 힌트를 주고 키워드로써 유도시켜 보면 어떨까?
+- **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 테스트데이터에 추가, ROUGE 상승
+
+### 6. 이외 매우 많으나 지면 관계로 생략
+
+---
+
+## **💡 Insights from Trial and Error**
+
+---
+
+## **🚀 Result**
+### Champion Model Info
+- **Version:** V7 (KoBART)
+- **Training Time:** 5h 30m
+- **Time per Epoch:** 3m 23s
+- **Accuracy:** 49.2834
+
+### Leaderboard Rank: No. 1 🏆
+![leaderboard mid](./assets/leaderboard_mid.png)
+![leaderboard final](./assets/leaderboard_final.png)
+
+---
+
+## **🛠️ etc.**
+### Reference
+- [[GitHub] DialogSum: A Real-life Scenario Dialogue Summarization Dataset](https://github.com/cylnlp/dialogsum)
+- [[arXiv] DialogSum: A Real-Life Scenario Dialogue Summarization Dataset (Chen et al., ACL 2021)](https://arxiv.org/abs/2105.06762)
+- [[Kaggle] DialogSum Corpus: A Large-Scale Dataset for Dialogue Summarization and Topic Gen](https://www.kaggle.com/datasets/marawanxmamdouh/dialogsum/data)
+- [[Hugging Face] KoSOLAR-10.7B-v0.2](https://huggingface.co/yanolja/KoSOLAR-10.7B-v0.2)
+- [Solar API](https://console.upstage.ai/api/chat)
+- [Optuna library](https://optuna.org/)
+
+### 프로젝트 회고
