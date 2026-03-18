@@ -38,6 +38,10 @@ apt update && apt install -y fonts-nanum
 ---
 
 ## **📋 Competiton Info**
+### 일정 (Timeline)
+- 2026.02.26 09:00 ~ 2026.03.11 18:00 (Competition)
+- 2026.03.12 15:00 ~ 2026.03.12 17:00 (Seminar)
+
 ### DialogSum: A Real-life Scenario Dialogue Summarization (일상 대화 요약)
 - 실제 일상생활(학교, 직장, 치료, 쇼핑, 여행 등)에서 가능한 다양한 시나리오 multi-turn 대화를 바탕으로 생성 요약문 작성
 - 목표: 정확하고 일반화된 모델을 개발하여 요약문 생성
@@ -158,7 +162,7 @@ apt update && apt install -y fonts-nanum
 ![summary_count](./images/summary_count.png)
 
 #### 4. Turn & 화자(speaker) 수
-> 각각의 발화자를 구분하기 위해 #Person"N"#: 을 사용하며, 발화자의 대화가 끝나면 \n 으로 구분<br>
+> 각각의 발화자를 구분하기 위해 #Person"N"#: 을 사용하며, 발화자의 대화가 끝나면 `\n` 으로 구분<br>
 > 턴 변경시 줄바꿈 규칙 누락: 5건<br>
 > 최소 턴수: 2 / 최대 턴수: 59
 
@@ -231,10 +235,10 @@ apt update && apt install -y fonts-nanum
 - full seed fixing (CUDA 결정론적 알고리즘 적용)
 - 최대 문자열까지 안정적으로 담기 위해 encoder 1024, decoder 256 변경
 - 일반화 성능을 향상하고 검증데이터를 증강에 활용하기 위해 K-Fold 적용
-- hyper-parameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인,<br>
+- hyperparameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인,<br>
   요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
-- 문장 길이 관련 hyper-parameter를 조정하여 문장을 되도록 짧게 끝마치도록 유도<br>
-  (length_penalty, repetition_penalty, early_stopping)
+- 문장 길이 관련 hyperparameter 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, early_stopping)
+- 영어 번역이므로 반복은 허용하되 (no_repeat_ngram_size) 되도록 자제하도록 유도 (repetition_penalty)
 - 그래도 문장이 끊기는 경우 종결 문장 부호를 기준으로 정규식을 적용하여 제거
 - ROUGE 중요도에 따라 MBR (Minimum Bayes Risk) 가중치 적용
 - 문자열 길이가 75% 이상이 되면 급격히 늘어나므로 이상치로 간주, MBR 가중치 적용 후보군에서 제외
@@ -245,7 +249,7 @@ apt update && apt install -y fonts-nanum
 ## **🕵️‍♀️ Hypothesis Testing**
 #### 1. 요약문 스타일 통일
 - **가설:** "~합니다." "~한다." "~함." 등의 불규칙한 동사 어미를 일치시키면 ROUGE가 오르지 않을까?
-- **결과:** 동일 코드에 동사 어미만 변경시 리더보드 점수 오히려 하락
+- **결과:** 동일 코드에 동사 어미만 격식체로 일관화 시켰음에도 리더보드 점수 오히려 하락
 
 #### 2. 맞춤법 & 띄어쓰기 통일
 - **가설:** 조사 '은/는'을 화자 태그 발음에 맞게 일관화 (예: #Person1#은), 화자 태그와 조사 사이에 생성되는 빈칸 정규식으로 제거
@@ -257,23 +261,23 @@ apt update && apt install -y fonts-nanum
 - **결과:** 상관계수 0.74로 가능성 있음, 통계 기반의 11단계 동적 길이 제어 후 리더보드 점수 상승
 
 #### 4. ROUGE의 중요도에 따른 가중치 적용
-- **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수 내기 힘들고 실제로도 매우 낮으므로 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
+- **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수를 높이기 힘드니까 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
 - **결과:** ROUGE-2 > ROUGE-L > ROUGE-1 순으로 MBR 가중치 적용 후 리더보드 점수 퀀텀점프
 
 #### 5. 평가데이터에 topic 생성
-- **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 평가데이터에도 topic을 생성해 어떤 대화인지 모델에게 힌트를 주고 키워드로써 유도시켜 보면 어떨까?
+- **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 평가데이터에도 topic 컬럼을 생성해보면 어떨까?
 - **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 평가데이터에 추가, 리더보드 점수 상승
 
 #### 6. 불용어 사전 만들기
 - **가설:** 너무 짧은 대화, "안녕", "응 그래" 수준의 데이터는 요약할게 없어서 모델을 멍청하게 만들 수 있다. 그런 단어들을 빼버리고 학습시켜 볼까? 모델이 대화 전체 뉘앙스를 이해하는데에 오히려 방해가 될까?
-- **결과:** 시간 부족으로 테스트 불가.
+- **결과:** 시간 부족으로 테스트 불가
 - 이외 시도된 가설들, 시도못한 가설들 매우 많으나 지면 관계로 생략
 
 ---
 
 ## **💡 Insights from Trial and Error**
 #### EDA & Data Preprocessing
-- **착오:** 데이터의 마지막 인덱스와 안내된 건수 불일치로 데이터 결측치 있다고 오해
+- **착오:** 데이터의 마지막 인덱스와 안내된 건수 불일치로 데이터 결측치가 있다고 오해
 - **결과:** 누락건에 대해서도 제출 파일과 일대일 매핑 일치해 결과적으로 삽질함
 
 #### nlp_ds_v1_baseline.py
@@ -288,6 +292,21 @@ apt update && apt install -y fonts-nanum
 - **조치:** 해당 옵션 제거 및 정규표현식을 통한 비정상 토큰 후처리 로직 도입
 - **교훈:** 한국어 특수 토큰 추가시 tokenizer의 자동 공백 정리 기능을 지양해야 함
 
+#### nlp_ds_v2 (Solar 10.7B)
+- **증상:** 모델을 LLM으로 올리니 필요한 라이브러리와 기존 torch가 궁합이 안 맞음
+- **조치:** CU124 기준으로 라이브러리를 설정했다가 CU121로 다운그레이드 했음에도 bitandbytes 버전이 너무 높아 재조치<br>
+  OOM 잡는데만도 한참 걸림. 하이퍼파라미터 계속 튜닝해서 8번만에 성공 (e.g. gradient_accumulation_steps를 사용하여 batch size를 줄임)
+- **교훈:** 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 실험들을 대부분 포기해야 했다. 파라미터 107억개는 너무 큰 도박이었다. 107억원이 아닌 이상 모험하지 마라.
+
+#### nlp_ds_v3 (Solar 10.7B)
+- **증상:** 요약에 화자 태그 대신 대화 중의 이름만 사용
+- **교훈:** LLM은 너무 똑똑해서 문제. 이름으로 부르는게 자연스럽다고 스스로 판단하고 고집을 꺾지 않는다.
+
+#### GIGO
+- 검증에는 형태소 분석기가 없어 로컬 점수와 리더보드 점수 사이의 정확한 correlation 확인 불가
+- 데이터가 쓰레기일 때(Garbage In), 모델이 얼마나 고통받는가(Garbage Out):<br>
+  나만 데이터클렌징하면 뭐하나 GT가 오염됐는데ㅠ
+
 ---
 
 ## **📊 Experiment Logger**
@@ -301,42 +320,68 @@ apt update && apt install -y fonts-nanum
       <th align="center">R1</th>
       <th align="center">R2</th>
       <th align="center">RL</th>
-      <th align="center" colspan="2">SCORE</th>
+      <th align="center">SCORE</th>
     </tr>
   </thead>
   <tbody>
     <tr>
+      <td colspan="8" align="center">. . .</td>
+    </tr>
+    <tr>
+      <td align="center">59</td>
+      <td align="center">260310</td>
+      <td>KoBART(digit82)</td>
+      <td>긴 문자열 이상치 처리</td>
+      <td align="center">0.5825</td>
+      <td align="center">0.3932</td>
+      <td align="center">0.5027</td>
+      <td align="center">49.2834</td>
+    </tr>
+    <tr>
+      <td align="center">58</td>
+      <td align="center">260310</td>
+      <td>KoBART(digit82)</td>
+      <td>Solar API 활용 topic 적용</td>
+      <td align="center">0.5825</td>
+      <td align="center">0.3926</td>
+      <td align="center">0.5021</td>
+      <td align="center">49.2413</td>
+    </tr>
+    <tr>
+      <td colspan="8" align="center">. . .</td>
+    </tr>
+    <tr>
       <td align="center">08</td>
       <td align="center">260303</td>
       <td>KoBART(digit82)</td>
-      <td>망함</td>
+      <td>모델 원복</td>
       <td align="center">0.3586</td>
       <td align="center">0.1555</td>
       <td align="center">0.2901</td>
       <td align="center">26.8082</td>
-      <td align="center">F</td>
+    </tr>
+    <tr>
+      <td colspan="8" align="center">. . .</td>
     </tr>
     <tr>
       <td align="center">07</td>
       <td align="center">260302</td>
       <td>KoSOLAR(yanolja)</td>
-      <td>망함</td>
+      <td>모델 변경</td>
       <td align="center">0.3586</td>
       <td align="center">0.1555</td>
       <td align="center">0.2901</td>
       <td align="center">26.8082</td>
-      <td align="center">F</td>
     </tr>
     <tr>
       <td align="center">06</td>
       <td align="center">260227</td>
-      <td>V2:eda2</td>
-      <td>아몰랑랑</td>
+      <td>V2:EDA</td>
+      <td>정규표현식 후처리</td>
       <td align="center">0.4885</td>
       <td align="center">0.2913</td>
       <td align="center">0.3991</td>
       <td align="center">39.2972</td>
-      <td align="center">F</td>
     </tr>
     <tr>
       <td align="center">05</td>
@@ -347,7 +392,6 @@ apt update && apt install -y fonts-nanum
       <td align="center">0.3229</td>
       <td align="center">0.4157</td>
       <td align="center">41.7098</td>
-      <td align="center">S</td>
     </tr>
     <tr>
       <td align="center">04</td>
@@ -358,7 +402,6 @@ apt update && apt install -y fonts-nanum
       <td align="center">0.1746</td>
       <td align="center">0.3056</td>
       <td align="center">28.7529</td>
-      <td align="center">S</td>
     </tr>
     <tr>
       <td align="center">03</td>
@@ -369,7 +412,6 @@ apt update && apt install -y fonts-nanum
       <td align="center">0.1469</td>
       <td align="center">0.1921</td>
       <td align="center">19.3655</td>
-      <td align="center">F</td>
     </tr>
     <tr>
       <td align="center">02</td>
@@ -380,7 +422,6 @@ apt update && apt install -y fonts-nanum
       <td align="center">0.3760</td>
       <td align="center">0.4808</td>
       <td align="center">47.5295</td>
-      <td align="center">S</td>
     </tr>
     <tr>
       <td align="center">01</td>
@@ -391,11 +432,13 @@ apt update && apt install -y fonts-nanum
       <td align="center">0.3737</td>
       <td align="center">0.4807</td>
       <td align="center">47.4018</td>
-      <td align="center">S</td>
     </tr>
   </tbody>
 </table>
+<br>
+
 ![wandb_01](./assets/wandb_01.png)
+<br>
 
 ---
 
@@ -409,6 +452,9 @@ apt update && apt install -y fonts-nanum
 ### Leaderboard Rank: No. 1 🏆
 ![leaderboard mid](./assets/leaderboard_mid.png)
 ![leaderboard final](./assets/leaderboard_final.png)
+
+### Presentation
+- [[PDF] NLP Seminar Presentation](https://github.com/karmakaryx/nlp-dialogue-summarization/blob/main/assets/semiar_nlp.pdf)
 
 ---
 
@@ -438,6 +484,10 @@ apt update && apt install -y fonts-nanum
 - model 중복 호출 제거
 - WandB 로그 범위 확대
 - yaml 파일명 정책 변경, yaml 환경 설정 파라미터 값 분류 및 정리
+
+> **nlp_ds_v2_train.py:**
+- 양자화(BitsAndBytes)와 LoRA 설정
+- 학습시간이 너무 길어 모델이 자주 터져 detached tmux session에서 실행
 - 이후 Solar 10.7B 적용 과정에서 5일을 소모하고도 실험 완전 실패로 시간에 쫓겨 버전별 로그 작성 시간 확보 불가,<br>
   자세한 버전별 변경사항은 archive와 code 디렉토리 참조
 
