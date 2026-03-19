@@ -99,7 +99,7 @@ apt update && apt install -y fonts-nanum
 │   ├── solar_api_summary.py   # Solar API call (summary)
 │   └── solar_api_topic.py     # Solar API call (topic)
 ├── config/                    # yaml file
-│   ├── nlp_ds_v6.yaml         # 실행파일명과 동기화
+│   ├── nlp_ds_v6.yaml
 │   └── nlp_ds_v7_final.yaml
 ├── data/                      # (이하 GitHub 관리안함)
 │   ├── dev_solar.csv          # Solar API로 증강한 dev summary & topic
@@ -133,7 +133,7 @@ apt update && apt install -y fonts-nanum
 
 #### 2. Qualitative Glimpse
 > 비정형 데이터인 일상 대화지만 채팅 대화와 달리 약어나 이모지 없이 formal style을 가짐<br>
-> 대화 중 이름 및 고유명사 표기가 영어와 한글이 섞여있음. Mr. Mrs. 등의 호칭도 자주 사용하나 '씨'와 일관성 없이 섞여있음<br>
+> 대화 중 이름 및 고유명사 표기가 영어와 한글이 섞여있음. Mr. Mrs. 등의 호칭도 자주 사용하나 '~씨'와 일관성 없이 섞여있음<br>
 > 고유명사를 제외하면 기본적으로 한국어 대화이며, 다른 언어 대화는 없으나 DialogSum 원본이 영문이라 어색한 번역체<br>
 > (아마도) 중국계 미국인이 만든 데이터셋이라 금액은 달러 또는 위안으로 표기. 달러는 $로도 표기됨 (역시 중구난방)
 
@@ -240,8 +240,7 @@ apt update && apt install -y fonts-nanum
 - full seed fixing (CUDA 결정론적 알고리즘 적용)
 - 최대 문자열까지 안정적으로 담기 위해 encoder 1024, decoder 256 변경
 - 일반화 성능을 향상하고 검증데이터를 증강에 활용하기 위해 K-Fold 적용
-- hyperparameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인,<br>
-  요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
+- hyperparameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
 - 문장 길이 관련 hyperparameter 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, early_stopping)
 - 영어 번역이므로 반복은 허용하되 (no_repeat_ngram_size) 되도록 자제하도록 유도 (repetition_penalty)
 - 그래도 문장이 끊기는 경우 종결 문장 부호를 기준으로 정규식을 적용하여 제거
@@ -267,9 +266,9 @@ apt update && apt install -y fonts-nanum
 
 #### 4. 원칙없는 GT 공략을 위한 맞춤형 추가 조정
 - **가설:** 조사나 동사 어미 변형은 물론, 호칭만 해도 "Mr."와 "~씨" 등 종잡을 수가 없다. 왜 이럴까?<br>
-  1) 여러 사람이 라벨링한 경우. 그래도 적어도 같은 사람은 같은 원칙과 맞춤법을 썼을 것이다.<br>
-  2) 기계 번역을 돌렸을 경우. 사람이 라벨링을 안하고 일괄로 번역기를 돌렸다면, 번역이 왜 이랬다저랬다 했을까?<br>
-     혹시 글자수 제한이 있어서 프로그램이 정상적으로 문장을 마치려고 반말이 랜덤으로 튀어나오는게 아니었을까?
+  하나, 여러 사람이 라벨링한 경우. 그래도 적어도 같은 사람은 같은 원칙과 맞춤법을 썼을 것이다.<br>
+  둘, 기계 번역을 돌렸을 경우. 사람이 라벨링을 안하고 일괄로 번역기를 돌렸다면, 번역이 왜 이랬다저랬다 했을까?<br>
+  혹시 글자수 제한이 있어서 프로그램이 정상적으로 문장을 마치려고 반말이 랜덤으로 튀어나오는게 아니었을까?
 - **결과:** 통계 기반의 11단계 동적 길이 제어 세분화, min_length는 아예 없애서 글자수가 남아 웅앵웅앵할 여지도 차단 후 리더보드 점수 상승
 
 #### 5. ROUGE의 중요도에 따른 가중치 적용
@@ -306,13 +305,12 @@ apt update && apt install -y fonts-nanum
 
 #### nlp_ds_v2 (Solar 10.7B)
 - **증상:** 모델을 LLM으로 올리니 필요한 라이브러리와 기존 torch가 궁합이 안 맞음
-- **조치:** CU124 기준으로 라이브러리를 설정했다가 CU121로 다운그레이드 했음에도 bitandbytes 버전이 너무 높아 재조치.<br>
-  OOM 잡는데만도 한참 걸림. 하이퍼파라미터 계속 튜닝해서 8번만에 성공 (e.g. gradient_accumulation_steps를 사용하여 batch size를 줄임)
+- **조치:** CU124 기준으로 라이브러리를 설정했다가 CU121로 다운그레이드 했음에도 OOM 잡는데만도 한참 걸림. 하이퍼파라미터 계속 튜닝해서 8번만에 성공 (e.g. gradient_accumulation_steps를 사용하여 batch size를 줄임)
 - **교훈:** 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 실험들을 대부분 포기해야 했다. 파라미터 107억개는 너무 큰 도박이었다. 107억원이 아닌 이상 모험하지 마라.
 
 #### nlp_ds_v3 (Solar 10.7B)
 - **증상:** 요약에 화자 태그 대신 대화 중의 이름만 사용
-- **교훈:** LLM은 너무 똑똑해서 문제. 이름으로 부르는게 자연스럽다고 스스로 판단하고 고집을 꺾지 않는다.<br>
+- **교훈:** LLM은 너무 똑똑해서 문제. 이름으로 부르는게 자연스럽다고 스스로 판단하고 고집을 꺾지 않는다.<br><br>
 - **증상:** 학습시간이 너무 길어 (24시간 이상) 중도에 학습이 중단
 - **조치:** 검증로직 제외, 추론 분리, checkpoint 직접 지정해 추론 (optimizer.pt는 제외해도 무관)
 
