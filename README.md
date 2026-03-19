@@ -213,6 +213,11 @@ apt update && apt install -y fonts-nanum
 - data cleaning: 줄바꿈 누락 10건, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건, `\\n`와 같은 데이터 노이즈 전처리
 - 대화문과 요약문간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화문 길이에 따라 요약문 길이 제한
 
+### Prompt Engineering (Solar API)
+- 요약문 문장수 통계에 의해 문장수 제한
+- 반드시 한글로만 요약하도록 강제
+- few shot 예제 추가: Assistant 역할 분리 및 CoT 적용
+
 ---
 
 ## **🧠 Modeling**
@@ -258,17 +263,24 @@ apt update && apt install -y fonts-nanum
 
 #### 3. 대화문 길이에 따른 요약문 길이 조정
 - **가설:** 대화문에 비례하여 요약문도 길어진다면 요약문의 길이를 대화문 길이에 맞춰 제한을 두면 어떨까?
-- **결과:** 상관계수 0.74로 가능성 있음, 통계 기반의 11단계 동적 길이 제어 후 리더보드 점수 상승
+- **결과:** 상관계수 0.74로 가능성 있음, 길이 제한 3단계 조절 후 리더보드 점수 상승
 
-#### 4. ROUGE의 중요도에 따른 가중치 적용
+#### 4. 원칙없는 GT 공략을 위한 맞춤형 추가 조정
+- **가설:** 조사나 동사 어미 변형은 물론, 호칭만 해도 "Mr."와 "~씨" 등 종잡을 수가 없다. 왜 이럴까?<br>
+  1) 여러 사람이 라벨링한 경우. 그래도 적어도 같은 사람은 같은 원칙과 맞춤법을 썼을 것이다.<br>
+  2) 기계 번역을 돌렸을 경우. 사람이 라벨링을 안하고 일괄로 번역기를 돌렸다면, 번역이 왜 이랬다저랬다 했을까?<br>
+     혹시 글자수 제한이 있어서 프로그램이 제한 내에서 요약을 정상적으로로 끝내려고 반말이 랜덤으로 튀어나오는게 아니었을까?
+- **결과:** 통계 기반의 11단계 동적 길이 제어 세분화, min length는 아예 없애서 글자수가 남아 웅앵웅앵할 여지도 차단 후 리더보드 점수 상승
+
+#### 5. ROUGE의 중요도에 따른 가중치 적용
 - **가설:** ROUGE-2는 bigram이라 확률적으로 가장 점수를 높이기 힘드니까 ROUGE-2가 높은 요약문에 가중치를 두면 어떨까?
 - **결과:** ROUGE-2 > ROUGE-L > ROUGE-1 순으로 MBR 가중치 적용 후 리더보드 점수 퀀텀점프
 
-#### 5. 평가데이터에 topic 생성
+#### 6. 평가데이터에 topic 생성
 - **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 평가데이터에도 topic 컬럼을 생성해보면 어떨까?
 - **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 평가데이터에 추가, 리더보드 점수 상승
 
-#### 6. 불용어 사전 만들기
+#### 7. 불용어 사전 만들기
 - **가설:** 너무 짧은 대화, "안녕", "응 그래" 수준의 데이터는 요약할게 없어서 모델을 멍청하게 만들 수 있다. 그런 단어들을 빼버리고 학습시켜 볼까? 모델이 대화 전체 뉘앙스를 이해하는데에 오히려 방해가 될까?
 - **결과:** 시간 부족으로 테스트 불가
 - 이외 시도된 가설들, 시도못한 가설들 매우 많으나 지면 관계로 생략
@@ -280,13 +292,16 @@ apt update && apt install -y fonts-nanum
 - **착오:** 데이터의 마지막 인덱스와 안내된 건수 불일치로 데이터 결측치가 있다고 오해
 - **결과:** 누락건에 대해서도 제출 파일과 일대일 매핑 일치해 결과적으로 삽질함
 
-#### nlp_ds_v1_baseline.py
+- **시도:** 요약 양쪽의 과다한 공백을 제거하기 위해 EOS 토큰 생성 유도 및 후처리 로직 최적화
+- **결과:** 리더보드에 0.003점 정도 기여?
+
+#### nlp_ds_v1_baseline
 - **증상:** code refectoring 후 검증 점수가 0.1940로 떨어짐
 - **원인:** ROUGE 대신 ROUGE Score 라이브러리를 사용함
 - **조치:** 운영진 평가 기준인 ROUGE 라이브러리의 동일 버전으로 원복
 - **교훈:** 누가 요즘은 ROUGE 안쓰고 ROUGE Score 쓴다고 했냐! 둘은 평가 결과가 다르고 대회의 룰은 무조건 지킵시다.
 
-#### nlp_ds_v1_yaml.py
+#### nlp_ds_v1_yaml
 - **증상:** 화자 태그(#Person#)가 &lt;unused68&gt; 같은 비정상 토큰과 깨진 한자(㗡)로 도배되어 있음
 - **원인:** clean_up_tokenization_spaces=True 설정으로 인한 decoding sequence 왜곡 및 한자 생성
 - **조치:** 해당 옵션 제거 및 정규표현식을 통한 비정상 토큰 후처리 로직 도입
@@ -302,6 +317,22 @@ apt update && apt install -y fonts-nanum
 - **증상:** 요약에 화자 태그 대신 대화 중의 이름만 사용
 - **교훈:** LLM은 너무 똑똑해서 문제. 이름으로 부르는게 자연스럽다고 스스로 판단하고 고집을 꺾지 않는다.
 
+- **증상:** 학습시간이 너무 길어 (24시간 이상) 중도에 학습이 중단
+- **조치:** 검증로직 제외, 추론 분리, checkpoint 직접 지정해 추론 (optimizer.pt는 제외해도 무관)
+
+#### nlp_ds_v4 (KoBART)
+- **시도:** 채점 기준 중에 형태소 분석기가 있는 것에 착안, 문장을 형태소 단위로 분리, 이후 형태소 분리된 문장을 정규식을 이용, 일반적인 띄어쓰기 맞춤법 반영
+- **결과:** 온갖 라이브러리 설치해가며 MeCab 적용 실패 후 KoNLPy로 갈아탔는데 결과적으로 실험 완전 실패
+- **원인:** KoBART는 WordPiece 또는 BPE(Byte Pair Encoding) 계열의 subword tokenizer를 사용, 통계적으로 빈번하게 발생하는 문자열 단위로 토큰을 분리하도록 이미 학습되어 있었음. 따라서 입력 분포 왜곡만 야기
+- **교훈:** 형태소는 개발자가 아니라 채점지가 나누는거였다!
+
+#### nlp_ds_v6_fail
+- **시도:** Solar API로 검증데이터의 summary와 topic 생성하여 데이터 증강, 이 때 증강분의 data leakage가 일어나지 않도록 GroupKFold 이용
+- **결과:** 리더보드 점수 더 하락
+- **원인:** 방법이 잘못된거 같진 않고 Solar가 증강한 요약이 별로였던 듯
+- **교훈:** Solar는 이런 딱딱하고 어색한 번역체 요약에는 잘 안 맞는거 같다. 1000원짜리 다이소 먼지털이로 충분한 청소를 공업용 컴프레서 사는거 같은 느낌?<br>
+  뚝딱거리고 조사도 안 맞는 서툰 번역체를 억지로 뽑기에는 투머치, 역설적으로 Solar의 탁월한 언어능력을 증명한 실험이었다.
+
 #### GIGO
 - 검증에는 형태소 분석기가 없어 로컬 점수와 리더보드 점수 사이의 정확한 correlation 확인 불가
 - 데이터가 쓰레기일 때(Garbage In), 모델이 얼마나 고통받는가(Garbage Out):<br>
@@ -310,6 +341,7 @@ apt update && apt install -y fonts-nanum
 ---
 
 ## **📊 Experiment Logger**
+> 실험 기록이 너무 많아 #07 이후로는 일부 주요 변화 건만 기재
 <table>
   <thead>
     <tr>
@@ -325,12 +357,19 @@ apt update && apt install -y fonts-nanum
   </thead>
   <tbody>
     <tr>
-      <td colspan="8" align="center">. . .</td>
+      <td align="center">60</td>
+      <td align="center">260311</td>
+      <td>KoBART+SolarAPI</td>
+      <td>검증 데이터 증강</td>
+      <td align="center">0.5754</td>
+      <td align="center">0.3848</td>
+      <td align="center">0.4955</td>
+      <td align="center">48.5225</td>
     </tr>
     <tr>
       <td align="center">59</td>
       <td align="center">260310</td>
-      <td>KoBART(digit82)</td>
+      <td>KoBART+SolarAPI</td>
       <td>긴 문자열 이상치 처리</td>
       <td align="center">0.5825</td>
       <td align="center">0.3932</td>
@@ -340,25 +379,52 @@ apt update && apt install -y fonts-nanum
     <tr>
       <td align="center">58</td>
       <td align="center">260310</td>
-      <td>KoBART(digit82)</td>
-      <td>Solar API 활용 topic 적용</td>
+      <td>KoBART+SolarAPI</td>
+      <td>평가데이터에 topic 적용</td>
       <td align="center">0.5825</td>
       <td align="center">0.3926</td>
       <td align="center">0.5021</td>
       <td align="center">49.2413</td>
     </tr>
     <tr>
-      <td colspan="8" align="center">. . .</td>
+      <td align="center">53</td>
+      <td align="center">260309</td>
+      <td>KoBART(digit82)</td>
+      <td>요약문 길이 제한 세분화</td>
+      <td align="center">0.5821</td>
+      <td align="center">0.3933</td>
+      <td align="center">0.5016</td>
+      <td align="center">49.2339</td>
     </tr>
     <tr>
-      <td align="center">08</td>
-      <td align="center">260303</td>
+      <td align="center">50</td>
+      <td align="center">260309</td>
+      <td>KoBART(digit82)</td>
+      <td>MBR 가중치 적용</td>
+      <td align="center">0.5812</td>
+      <td align="center">0.3913</td>
+      <td align="center">0.4997</td>
+      <td align="center">49.0737</td>
+    </tr>
+    <tr>
+      <td align="center">34</td>
+      <td align="center">260306</td>
+      <td>Solar API</td>
+      <td>프롬프트로 추론 생성</td>
+      <td align="center">0.5443</td>
+      <td align="center">0.3471</td>
+      <td align="center">0.4695</td>
+      <td align="center">45.3636</td>
+    </tr>
+    <tr>
+      <td align="center">18</td>
+      <td align="center">260304</td>
       <td>KoBART(digit82)</td>
       <td>모델 원복</td>
-      <td align="center">0.3586</td>
-      <td align="center">0.1555</td>
-      <td align="center">0.2901</td>
-      <td align="center">26.8082</td>
+      <td align="center">0.5690</td>
+      <td align="center">0.3762</td>
+      <td align="center">0.4809</td>
+      <td align="center">47.5363</td>
     </tr>
     <tr>
       <td colspan="8" align="center">. . .</td>
@@ -488,6 +554,7 @@ apt update && apt install -y fonts-nanum
 > **nlp_ds_v2_train.py:**
 - 양자화(BitsAndBytes)와 LoRA 설정
 - 학습시간이 너무 길어 모델이 자주 터져 detached tmux session에서 실행
+- 문장이 완성(EOS 토큰 발생)되면 즉시 추론을 종료하도록 num_beams 크기 조절
 - 이후 Solar 10.7B 적용 과정에서 5일을 소모하고도 실험 완전 실패로 시간에 쫓겨 버전별 로그 작성 시간 확보 불가,<br>
   자세한 버전별 변경사항은 archive와 code 디렉토리 참조
 
