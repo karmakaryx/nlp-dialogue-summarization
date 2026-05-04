@@ -37,7 +37,7 @@ apt update && apt install -y fonts-nanum
 
 ---
 
-## **📋 Competiton Info**
+## **📋 Competition Info**
 ### 일정 (Timeline)
 - 2026.02.26 09:00 ~ 2026.03.11 18:00 (Competition)
 - 2026.03.12 15:00 ~ 2026.03.12 17:00 (Seminar)
@@ -45,7 +45,7 @@ apt update && apt install -y fonts-nanum
 ### DialogSum: A Real-life Scenario Dialogue Summarization (일상 대화 요약)
 - 실제 일상생활(학교, 직장, 치료, 쇼핑, 여행 등)에서 가능한 다양한 시나리오 multi-turn 대화를 바탕으로 생성 요약문 작성
 - 목표: 정확하고 일반화된 모델을 개발하여 요약문 생성
-- 대화 스타일: 구어체 (최소 2명 ~ 최대 7명의 대화형식, 최소 2turn ~ 최대 60turn)
+- 대화 스타일: 구어체 (최소 2명 ~ 최대 7명의 대화형식, 최소 2 turn ~ 최대 60 turn)
 - 대화 도메인: 다양한 주제
 - Senario: daily life
 
