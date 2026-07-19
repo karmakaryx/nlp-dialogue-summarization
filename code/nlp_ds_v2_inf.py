@@ -121,7 +121,7 @@ def run_test():
             summaries.append(gen_text)
 
     test_df["summary"] = summaries
-    output_path = os.path.join(OUTPUT_PATH, "output.csv")
+    output_path = os.path.join(OUTPUT_PATH, "submission.csv")
 
     submission_df = test_df[["fname", "summary"]]
     submission_df.to_csv(output_path, index=False, header=False)
