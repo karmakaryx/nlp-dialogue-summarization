@@ -404,8 +404,7 @@ $RECYCLE.BIN/
 
 # Custom
 data/
-experiments/
-wandb/
+output/
 *.tar
 *.pkl
 *.h5
