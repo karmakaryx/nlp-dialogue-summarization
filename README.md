@@ -3,6 +3,8 @@
 ## **💻 Project Overview**
 ### Environment
 - **OS:** Linux Ubuntu 20.04.6 LTS
+- **System Memory:** 256GB RAM
+- **Computing Power:** 24-Core / 48-Thread Multi-core CPU
 - **GPU:** NVIDIA GeForce RTX 3090 (24GB)
 - **NVIDIA Driver Version:** 535.86.10
 - **CUDA Version:** 12.2 (Runtime: 12.1)
@@ -14,40 +16,31 @@ apt update && apt install -y fonts-nanum
 ```
 
 ### Requirements
-- accelerate==0.34.2
-- bitsandbytes==0.45.0
-- httpx==0.26.0
-- ipykernel==7.2.0
-- matplotlib==3.10.8
-- openai==1.12.0
-- pandas==2.3.3
-- peft==0.12.0
-- plotly==6.5.2
-- python-dotenv==1.0.1
-- rouge==1.0.1
-- scikit-learn==1.7.2
-- seaborn==0.13.2
-- torch==2.4.1
-- torchaudio==2.4.1
-- torchvision==0.19.1
-- transformers==4.46.1
-- trl==0.12.1
-- wandb==0.25.0
-- wordcloud==1.9.6
+```
+accelerate==0.34.2                                rouge==1.0.1
+bitsandbytes==0.45.0                              scikit-learn==1.7.2
+httpx==0.26.0                                     seaborn==0.13.2
+ipykernel==7.2.0                                  torch==2.4.1
+matplotlib==3.10.8                                torchaudio==2.4.1
+openai==1.12.0                                    torchvision==0.19.1
+pandas==2.3.3                                     transformers==4.46.1
+peft==0.12.0                                      trl==0.12.1
+plotly==6.5.2                                     wandb==0.25.0
+python-dotenv==1.0.1                              wordcloud==1.9.6
+```
 
 ---
 
 ## **📋 Competition Info**
-### 일정 (Timeline)
-- 2026.02.26 09:00 ~ 2026.03.11 18:00 (Competition)
-- 2026.03.12 15:00 ~ 2026.03.12 17:00 (Seminar)
-
-### DialogSum: A Real-life Scenario Dialogue Summarization (일상 대화 요약)
-- 실제 일상생활(학교, 직장, 치료, 쇼핑, 여행 등)에서 가능한 다양한 시나리오 multi-turn 대화를 바탕으로 생성 요약문 작성
-- 목표: 정확하고 일반화된 모델을 개발하여 요약문 생성
+### 일상 대화 요약 (Dialogue Summarization)
+- 실제 일상생활(학교, 직장, 치료, 쇼핑, 여행 등)에서 가능한 다양한 시나리오 multi-turn 대화를 바탕으로 정확하고 일반화된 모델을 개발하여 생성 요약문 작성
 - 대화 스타일: 구어체 (최소 2명 ~ 최대 7명의 대화형식, 최소 2 turn ~ 최대 60 turn)
 - 대화 도메인: 다양한 주제
 - Senario: daily life
+
+### 일정 (Timeline)
+- 2026.02.26 09:00 ~ 2026.03.11 18:00 (Competition)
+- 2026.03.12 15:00 ~ 2026.03.12 17:00 (Seminar)
 
 ### 데이터셋 정보 (Dataset Info)
 - 학습데이터: 12,457건
@@ -69,14 +62,12 @@ apt update && apt install -y fonts-nanum
 - 관찰자의 관점에서 작성 (화자의 의도를 이해하고 작성)
 - 은어나 약어 없이 공식적으로 사용되는 언어로 작성
 
-### 규정 (Rule)
-- DialogSum 데이터셋을 기반으로 한 모든 파생 데이터셋 및 파생 작업물 금지
-- 무료로 사용 가능한 API에 한정하여 사용 가능 (Solar 모델은 사용 가능)
-
 ### 평가지표 (Evaluation Metric)
 - ROUGE (Recall-Oriented Understudy for Gisting Evaluation)
 
-![equation](https://latex.codecogs.com/svg.image?\text{Score}=\frac{\sum_{i}^{N}\text{ROUGE-1-F1}(\text{pred},\text{gold}_i)}{N}&plus;\frac{\sum_{i}^{N}\text{ROUGE-2-F1}(\text{pred},\text{gold}_i)}{N}&plus;\frac{\sum_{i}^{N}\text{ROUGE-L-F1}(\text{pred},\text{gold}_i)}{N})
+<div align="center">
+  <img src="https://latex.codecogs.com/svg.image?\text{Score}=\frac{\sum_{i}^{N}\text{ROUGE-1-F1}(\text{pred},\text{gold}_i)}{N}&plus;\frac{\sum_{i}^{N}\text{ROUGE-2-F1}(\text{pred},\text{gold}_i)}{N}&plus;\frac{\sum_{i}^{N}\text{ROUGE-L-F1}(\text{pred},\text{gold}_i)}{N}" alt="equation"/>
+</div>
 
 - Sentence Tokenization: 한국어 형태소 분석기를 통해 의미를 갖는 최소 단위인 형태소 단위로 문장을 쪼갠 뒤 모델이 생성한 문장과 정답 문장을 비교하여 ROUGE score 산출
 - 3개의 summary에 대해서 개별적으로 점수를 산출한 뒤, 종합하여 최종 평가에 활용
@@ -84,41 +75,9 @@ apt update && apt install -y fonts-nanum
 - DialogSum 데이터셋은 Multi-Reference Dataset으로 multi-reference에 대한 average를 보는 것이 중요
 - Public / Private은 대화 주제에 따라 50%씩 고르게 선정
 
----
-
-## **⚙️ Components**
-### Directory
-```
-├── archive/...                # legacy files (v1 ~ v5)
-├── assets/...                 # README images & PDF
-├── code/
-│   ├── eda.ipynb              # EDA
-│   ├── nlp_ds_v6_fail.py      # v6 (GroupKFold)
-│   ├── nlp_ds_v6.py           # v6
-│   ├── nlp_ds_v7_final.py     # v7 (final)
-│   ├── solar_api_summary.py   # Solar API call (summary)
-│   └── solar_api_topic.py     # Solar API call (topic)
-├── config/                    # yaml file
-│   ├── nlp_ds_v6.yaml
-│   └── nlp_ds_v7_final.yaml
-├── data/                      # (이하 GitHub 관리안함)
-│   ├── dev_solar.csv          # Solar API로 증강한 dev summary & topic
-│   ├── dev.csv                # 검증데이터
-│   ├── sample_submission.csv  # 제출파일 template
-│   ├── test_solar.csv         # Solar API로 생성한 test topic
-│   ├── test.csv               # 평가데이터
-│   └── train.csv              # 학습데이터
-├── experiments/               # (이하 GitHub 관리안함)
-│   ├── checkpoint-####/...    # checkpoint directories
-│   ├── logs/...               # WandB & logs
-│   └── output.csv             # 추론 후 제출할 파일 생성
-├── images/...                 # 시각화 images
-├── .env                       # 경로설정
-├── .gitignore
-├── LICENSE
-├── README.md
-└── requirements.txt
-```
+### 규정 (Rule)
+- DialogSum 데이터셋을 기반으로 한 모든 파생 데이터셋 및 파생 작업물 금지
+- 무료로 사용 가능한 API에 한정하여 사용 가능 (Solar 모델은 사용 가능)
 
 ---
 
@@ -155,11 +114,11 @@ apt update && apt install -y fonts-nanum
 > **요약문 토큰 길이 (검증):** 평균 29, 최소 10, 최대 98
 
 > **대화문 vs 요약문 토큰 상관계수**
-![correlation_train](./images/correlation_train.png)
-![correlation_valid](./images/correlation_valid.png)
+![eda_correlation_train](./assets/eda_correlation_train.png)
+![eda_correlation_valid](./assets/eda_correlation_valid.png)
 
 > **요약문 문장 수 통계**
-![summary_count](./images/summary_count.png)
+![eda_summary_count](./assets/eda_summary_count.png)
 
 #### 4. Turn & 화자(speaker) 수
 > 각각의 발화자를 구분하기 위해 #Person"N"#: 을 사용하며, 발화자의 대화가 끝나면 `\n` 으로 구분<br>
@@ -167,45 +126,45 @@ apt update && apt install -y fonts-nanum
 > 최소 턴수: 2 / 최대 턴수: 59
 
 > **턴 수 vs 요약문 길이 분포**
-![summary_turn](./images/summary_turn.png)
+![eda_summary_turn](./assets/eda_summary_turn.png)
 
 > **턴 수 vs 대화문 토큰 길이 상관계수 (학습)**
-![correlation_turn](./images/correlation_turn.png)
+![eda_correlation_turn](./assets/eda_correlation_turn.png)
 
 > **화자 수**<br>
 > 학습: #Person1# 부터 #Person7# 까지 / 테스트: #Person1# 부터 #Person3# 까지<br>
 > 대화당 등장인원 통계를 내보니 최대 참여인원 7명까진 훼이크고 대부분 둘이 주고받는 대화다..<br>
 > 점점 통계 내는게 의미가 없는 기분이다. 😂
-![participants](./images/participants.png)
+![eda_participants](./assets/eda_participants.png)
 
 #### 5. Topic Inspection
 > 전체 12,457건 대화 중 토픽이 (공백 정제 후에도) 9,235종에 달하는 분산 현상<br>
 > Treemap 결과, 전체 토픽 종류 (9,235종) 대비 약 87% (8,041종), 전체 데이터 대비 약 64.5%가 1회성 토픽에 해당<br>
 > Top 5: 음식 주문 (130), 취업 면접 (109), 길 안내 (66), 호텔 체크인 (40), 아파트 임대 (30)
 
-![treemap](./images/treemap.jpg)
+![eda_treemap](./assets/eda_treemap.jpg)
 
 > 토픽 빈도수 분포로 시각화한 결과, 전형적인 long-tail 형태를 넘어 log를 적용해야 꼬리라도 보일 것 같다. 🫥<br>
 > 다시 말해 토픽 분류에 의해 어떤 인사이트를 기대할 수 없다는 얘기다. 그래도 일단은 파본다.
-![longtail](./images/longtail.png)
+![eda_longtail](./assets/eda_longtail.png)
 
 > 토픽이 너무 많아 토픽 대비 문자열 길이도 제대로 볼 수가 없다! (겹쳐서 시꺼먼게 전부 무한 토픽들..)
-![violin_plot](./images/violin_plot.png)
+![eda_violin_plot](./assets/eda_violin_plot.png)
 
 > 10건 이하 토픽을 그룹화하니 겨우 상황 파악 가능: 평균 406자, 최소 84자, 최대 2,165자<br>
 > 근데 또 10건 이하 토픽이 문자열 긴 놈도 유난히 많아요. 이상치 점이 선이 되고 있다..
-![box_plot](./images/box_plot.png)
+![eda_box_plot](./assets/eda_box_plot.png)
 
 > 토픽별로 단어 빈도를 대략적으로 확인하기 위해 최다 토픽 5건에 대해 Word Clouds 시각화<br>
 > 일반적이거나 의미없는 단어들은 간단한 불용어사전을 작성해 필터링하니 주제별로 키워드가 대략 보인다.<br>
 > (예약했어요 손님 방이 인상적이다.. 아-파트아파트아-파트 🎶)
 
-![topic1](./images/wordcloud_01.png)
+![eda_wordcloud1](./assets/eda_wordcloud1.png)
 | Topic 2 | Topic 3 |
 | :---: | :---: |
-| ![topic2](./images/wordcloud_02.png) | ![topic3](./images/wordcloud_03.png) |
+| ![eda_wordcloud2](./assets/eda_wordcloud2.png) | ![eda_wordcloud3](./assets/eda_wordcloud3.png) |
 | **Topic 4** | **Topic 5** |
-| ![topic4](./images/wordcloud_04.png) | ![topic5](./images/wordcloud_05.png) |
+| ![eda_wordcloud4](./assets/eda_wordcloud4.png) | ![eda_wordcloud5](./assets/eda_wordcloud5.png) |
 
 ### Data Preprocessing
 - test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
@@ -250,7 +209,7 @@ apt update && apt install -y fonts-nanum
 
 ---
 
-## **🕵️‍♀️ Hypothesis Testing**
+## **🕵️‍♀️ Hypothesis Notes**
 #### 1. 요약문 스타일 통일
 - **가설:** "~합니다." "~한다." "~함." 등의 불규칙한 동사 어미를 일치시키면 ROUGE가 오르지 않을까?
 - **결과:** 동일 코드에 동사 어미만 격식체로 일관화 시켰음에도 리더보드 점수 오히려 하락
@@ -494,10 +453,8 @@ apt update && apt install -y fonts-nanum
     </tr>
   </tbody>
 </table>
-<br>
 
-![wandb_01](./assets/wandb_01.png)
-<br>
+![wandb](./assets/wandb.png)
 
 ---
 
@@ -508,16 +465,18 @@ apt update && apt install -y fonts-nanum
 - **Time per Epoch:** 3m 23s
 - **Accuracy:** 49.2834
 
-### Leaderboard Rank: No. 1 🏆
-![leaderboard mid](./assets/leaderboard_mid.png)
-![leaderboard final](./assets/leaderboard_final.png)
+### Leaderboard Rank: No. 1 🏆 [mid: 52.2647 / final: 49.6036]
+![leaderboard_mid](./assets/leaderboard.png)
+![leaderboard_mid](./assets/leaderboard_mid.png)
+![leaderboard_final](./assets/leaderboard_final.png)
 
 ### Presentation
-- [[PDF] NLP Seminar Presentation](https://github.com/karmakaryx/nlp-dialogue-summarization/blob/main/assets/semiar_nlp.pdf)
+- [[PDF] NLP Seminar Presentation](./assets/semiar_nlp.pdf)
 
 ---
 
 ## **📜 Version Log**
+[[Releases] Download Source Code for Each Version](https://github.com/karmakaryx/nlp-dialogue-summarization/releases)
 ### V1: digit82/kobart-summarization
 > **nlp_ds_v1_baseline.py:**
 - Jupyter Notebook을 Python script로 변환하며 발생하는 warnings & runtime errors 해결
@@ -553,16 +512,57 @@ apt update && apt install -y fonts-nanum
 
 ---
 
+## **⚙️ Components**
+### Pipeline
+
+### Directory
+```
+├── assets/...                 # README images & PDF
+├── code/
+│   ├── eda.ipynb              # EDA Notebook
+│   ├── baseline.py            # baseline code
+│   ├── nlp_ds_v6_fail.py      # v6 (GroupKFold)
+│   ├── nlp_ds_v6.py           # v6
+│   ├── nlp_ds_v7_final.py     # v7 (final)
+│   ├── solar_api_summary.py   # Solar API call (summary)
+│   └── solar_api_topic.py     # Solar API call (topic)
+├── config/                    # hyperparameter 설정
+│   ├── nlp_ds_v6.yaml
+│   └── nlp_ds_v7_final.yaml
+├── data/                      # (GitHub 관리 제외)
+│   ├── dev_solar.csv          # Solar API로 증강한 dev summary & topic
+│   ├── dev.csv                # 검증데이터
+│   ├── sample_submission.csv  # 제출파일 template
+│   ├── test_solar.csv         # Solar API로 생성한 test topic
+│   ├── test.csv               # 평가데이터
+│   └── train.csv              # 학습데이터
+├── output/                    # (GitHub 관리 제외)
+│   ├── checkpoint-####/...    # 모델 가중치 저장
+│   ├── logs/...               # W&B & logs
+│   └── submission.csv         # 추론 후 제출파일 생성
+├── .env.example               # 경로설정 template
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
+
+---
+
 ## **🛠️ etc.**
 ### Reference
-- [[GitHub] DialogSum: A Real-life Scenario Dialogue Summarization Dataset](https://github.com/cylnlp/dialogsum)
 - [[arXiv] DialogSum: A Real-Life Scenario Dialogue Summarization Dataset (Chen et al., ACL 2021)](https://arxiv.org/abs/2105.06762)
+- [[GitHub] DialogSum: A Real-life Scenario Dialogue Summarization Dataset](https://github.com/cylnlp/dialogsum)
 - [[Kaggle] DialogSum Corpus: A Large-Scale Dataset for Dialogue Summarization and Topic Gen](https://www.kaggle.com/datasets/marawanxmamdouh/dialogsum/data)
 - [[Hugging Face] KoSOLAR-10.7B-v0.2](https://huggingface.co/yanolja/KoSOLAR-10.7B-v0.2)
 - [[Solar API] https://console.upstage.ai/api/chat](https://console.upstage.ai/api/chat)
 - [[Optuna library] https://optuna.org/](https://optuna.org/)
 
+### Role & Project Management
+- **역할:** 팀장 (Project Lead) & Main System Architect
+- **협업방식:** Slack 채널 중심의 일정 관리 및 의견 공유. 대회이므로 각자 개발하여 리더보드 제출 (최소 제출 횟수 의무화)
+- **기여도 (80%):** 프로젝트 일정 관리, End-to-End 파이프라인 설계, 단독 개발 및 실험, Git 구축, 최종 산출물 작성 (팀원은 데이터 시각화 지원), 세미나 발표
+
 ### Project Retrospective
-이번 대회는 아무리 논리적으로 합당한 가설을 시도해도 점수가 더 떨어지는 특이한 대회였는데요, 영어처럼 단어별로 띄어쓰기가 명확히 분리되지 않고 조사와 동사 어미 변화가 심한 한국어와 ROUGE 평가지표가 궁합이 맞지 않는게 첫번째 원인이 아니었나 싶습니다. 어쩌면 이 대회는 현실세계 데이터가 얼마나 지저분하고 종잡을 수 없는지, 언어라는게 얼마나 유동적이고 변칙적인지, 좋은 NLP 모델을 만드는게 얼마나 힘들고 수많은 랜덤 변수를 고려해야 하는지, 이론과 실제가 얼마나 다른지 그 실전의 쓴맛을 체험시켜 주는게 목적이었던 대회가 아니었나 싶습니다ㅠ
+이번 대회는 아무리 논리적으로 합당한 가설을 시도해도 점수가 더 떨어지는 특이한 대회였는데요, 영어처럼 단어별로 띄어쓰기가 명확히 분리되지 않고 조사와 동사 어미 변화가 심한 한국어와 ROUGE 평가지표가 궁합이 맞지 않는게 첫번째 원인이 아니었나 싶습니다. 어쩌면 이 대회는 현실세계 데이터가 얼마나 지저분하고 종잡을 수 없는지, 언어라는게 얼마나 유동적이고 변칙적인지, 좋은 NLP 모델을 만드는게 얼마나 힘들고 수많은 랜덤 변수를 고려해야 하는지, 이론과 다른 그 실전의 쓴맛을 체험시켜 주는게 목적인 대회가 아니었나 싶습니다ㅠ
 
 <br>
