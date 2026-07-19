@@ -9,8 +9,7 @@ from rouge import Rouge
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from transformers import AutoTokenizer, BartForConditionalGeneration
-from transformers import EarlyStoppingCallback
-from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
+from transformers import EarlyStoppingCallback, Seq2SeqTrainingArguments, Seq2SeqTrainer
 
 load_dotenv()
 TEAM = os.getenv("TEAM")
