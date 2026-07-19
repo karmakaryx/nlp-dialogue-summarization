@@ -11,8 +11,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 load_dotenv()
 OS_PATH = os.getenv("OS_PATH")
-if not OS_PATH:
-    raise ValueError("OS_PATH 환경변수가 설정되지 않았습니다!")
 
 file_name = "_".join(os.path.splitext(os.path.basename(__file__))[0].split("_")[:3])
 OUTPUT_PATH = os.path.join(OS_PATH, "output", file_name)
