@@ -43,24 +43,11 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - 2026.03.12 15:00 ~ 2026.03.12 17:00 (Seminar)
 
 ### 데이터셋 정보 (Dataset Info)
-- 학습데이터: 12,457건
+- 훈련데이터: 12,457건
 - 검증데이터: 499건
 - 평가데이터: 499건
 - 제출파일: 499건 (sample_submission.csv)
-- 평가데이터는 학습데이터와 달리 dialogue 하나에 summary 3개 존재
-
-### Feature 구성
-- 학습데이터: fname (train_0부터), dialog, summary, topic
-- 검증데이터: fname (dev_0부터), dialog, summary, topic
-- 평가데이터: fname (test_0부터), dialog
-- 제출파일: index (헤더명 없음, 0부터), fname, summary
-
-### 정답 요약문 작성시 주요 기준
-- 대화의 가장 중요한 정보 전달
-- 간략하게 (대화 길이의 20% 이내)
-- 대화 내에서 중요한 명명된 개체 보존 (사람 이름, 기업명 등)
-- 관찰자의 관점에서 작성 (화자의 의도를 이해하고 작성)
-- 은어나 약어 없이 공식적으로 사용되는 언어로 작성
+- 평가데이터는 훈련데이터와 달리 dialogue 하나에 summary 3개 존재
 
 ### 평가지표 (Evaluation Metric)
 - ROUGE (Recall-Oriented Understudy for Gisting Evaluation)
@@ -79,11 +66,24 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - DialogSum 데이터셋을 기반으로 한 모든 파생 데이터셋 및 파생 작업물 금지
 - 무료로 사용 가능한 API에 한정하여 사용 가능 (Solar 모델은 사용 가능)
 
+### 정답 요약문 작성시 주요 기준
+- 대화의 가장 중요한 정보 전달
+- 간략하게 (대화 길이의 20% 이내)
+- 대화 내에서 중요한 명명된 개체 보존 (사람 이름, 기업명 등)
+- 관찰자의 관점에서 작성 (화자의 의도를 이해하고 작성)
+- 은어나 약어 없이 공식적으로 사용되는 언어로 작성
+
 ---
 
 ## **💾 Data Description**
 ### EDA (Exploratory Data Analysis)
-#### 1. 데이터의 구조적 무결성 검증
+#### 1. 데이터 feature 구성
+> **훈련데이터:** fname (train_0부터), dialog, summary, topic<br>
+> **검증데이터:** fname (dev_0부터), dialog, summary, topic<br>
+> **평가데이터:** fname (test_0부터), dialog<br>
+> **제출파일:** index (헤더명 없음, 0부터), fname, summary
+
+#### 2. 데이터의 구조적 무결성 검증
 > 훈련데이터의 마지막 인덱스 번호(0-12459)와 안내된 건수(12457)가 불일치해 fname 누락 여부 검사<br>
 > fname에서 숫자 추출하여 0부터 최댓값까지의 집합과 실제 데이터 집합 간의 차집합 연산을 훈련, 검증, 평가데이터에 모두 수행<br>
 > 인덱스 결측치에 의한 불연속성 확인 (훈련 3건 [10933, 10972, 11473], 검증 1건 [475], 평가 1건 [466])
@@ -99,18 +99,18 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 > 개인정보 마스킹 처리: 전화번호(#PhoneNumber#), 주소(#Address#), 생년월일(#DateOfBirth#), 여권번호(#PassportNumber#), 사회보장번호(#SSN#), 신용카드번호(#CardNumber#), 차량번호(#CarNumber#), 이메일주소(#Email#)
 
 #### 3. Dialogue & Summary Inspection
-> **대화문 길이 (학습):**  평균 406, 최소 84, 최대 2165<br>
+> **대화문 길이 (훈련):**  평균 406, 최소 84, 최대 2165<br>
 > **대화문 길이 (검증):**  평균 400, 최소 114, 최대 1269<br>
 > **대화문 길이 (평가):**  평균 419, 최소 111, 최대 2213
 
-> **요약문 길이 (학습):**  평균 86, 최소 13, 최대 376<br>
+> **요약문 길이 (훈련):**  평균 86, 최소 13, 최대 376<br>
 > **요약문 길이 (검증):**  평균 81, 최소 29, 최대 283
 
-> **대화문 토큰 길이 (학습):** 평균 152, 최소 32, 최대 918<br>
+> **대화문 토큰 길이 (훈련):** 평균 152, 최소 32, 최대 918<br>
 > **대화문 토큰 길이 (검증):** 평균 149, 최소 39, 최대 525<br>
 > **대화문 토큰 길이 (평가):** 평균 155, 최소 40, 최대 879
 
-> **요약문 토큰 길이 (학습):** 평균 13, 최소 6, 최대 156<br>
+> **요약문 토큰 길이 (훈련):** 평균 13, 최소 6, 최대 156<br>
 > **요약문 토큰 길이 (검증):** 평균 29, 최소 10, 최대 98
 
 > **대화문 vs 요약문 토큰 상관계수**
@@ -128,11 +128,11 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 > **턴 수 vs 요약문 길이 분포**
 ![eda_summary_turn](./assets/eda_summary_turn.png)
 
-> **턴 수 vs 대화문 토큰 길이 상관계수 (학습)**
+> **턴 수 vs 대화문 토큰 길이 상관계수 (훈련데이터)**
 ![eda_correlation_turn](./assets/eda_correlation_turn.png)
 
 > **화자 수**<br>
-> 학습: #Person1# 부터 #Person7# 까지 / 테스트: #Person1# 부터 #Person3# 까지<br>
+> 훈련: #Person1# 부터 #Person7# 까지 / 평가: #Person1# 부터 #Person3# 까지<br>
 > 대화당 등장인원 통계를 내보니 최대 참여인원 7명까진 훼이크고 대부분 둘이 주고받는 대화다..<br>
 > 점점 통계 내는게 의미가 없는 기분이다. 😂
 ![eda_participants](./assets/eda_participants.png)
@@ -168,9 +168,12 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 
 ### Data Preprocessing
 - test.csv와 submission의 index를 일치시키기 위해 left join 병합으로 dataframe mapping을 시도했으나, 이후 제출 파일 또한 평가 데이터와 동일한 인덱스가 누락됨을 발견, 만일을 위해 assert만 수행
-- special_tokens에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 일괄 등록하여 embedding layer 일치
+
+- `special_tokens`에 화자를 #Person7#까지 모두 추가하고 마스킹된 개인정보 태그도 일괄 등록하여 embedding layer 일치
+
 - data cleaning: 줄바꿈 누락 10건, 턴이 바뀌면 줄바꿈 되는 규칙 위반 5건, `\\n`와 같은 데이터 노이즈 전처리
-- 대화문과 요약문간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화문 길이에 따라 요약문 길이 제한
+
+- 대화문과 요약문 길이 간의 0.74대의 높은 상관관계 확인되어 25%, 50%, 75%를 분기점으로 대화문 길이에 따라 요약문 길이 제한
 
 ### Prompt Engineering (Solar API)
 - 요약문 문장수 통계에 의해 문장수 제한
@@ -196,16 +199,16 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - 단점: LLM급 괴물 덩치라 1epoch 돌려보고 fine tuning 포기 (3090 기준 28시간..)
 
 ### Modeling Process
-- full seed fixing (CUDA 결정론적 알고리즘 적용)
+- full seed fixing: CUDA 결정론적 알고리즘 적용
 - 최대 문자열까지 안정적으로 담기 위해 encoder 1024, decoder 256 변경
 - 일반화 성능을 향상하고 검증데이터를 증강에 활용하기 위해 K-Fold 적용
-- hyperparameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
-- 문장 길이 관련 hyperparameter 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, early_stopping)
+- 하이퍼파라미터의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
+- 문장 길이 관련 하이퍼파라미터 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, early_stopping)
 - 영어 번역이므로 반복은 허용하되 (no_repeat_ngram_size) 되도록 자제하도록 유도 (repetition_penalty)
 - 그래도 문장이 끊기는 경우 종결 문장 부호를 기준으로 정규식을 적용하여 제거
 - ROUGE 중요도에 따라 MBR (Minimum Bayes Risk) 가중치 적용
 - 문자열 길이가 75% 이상이 되면 급격히 늘어나므로 이상치로 간주, MBR 가중치 적용 후보군에서 제외
-- Solar API 활용, 학습데이터처럼 topic 컬럼을 평가데이터에도 생성, 모델이 topic을 통해 대화내용을 미리 추정하도록 유도
+- Solar API 활용, 훈련데이터처럼 topic 컬럼을 평가데이터에도 생성, 모델이 topic을 통해 대화내용을 미리 추정하도록 유도
 
 ---
 
@@ -217,7 +220,7 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 #### 2. 맞춤법 & 띄어쓰기 통일
 - **가설:** 조사 '은/는'을 화자 태그 발음에 맞게 일관화 (예: #Person1#은), 화자 태그와 조사 사이에 생성되는 빈칸 정규식으로 제거
 - **결과:** 리더보드 점수 여전히 하락, 그럼 ground truth에 일관성이 없다는건데.. 러시안룰렛이여?<br>
-  GT 데이터의 품질 검수가 제대로 이루어진 건지 의문
+GT 데이터의 품질 검수가 제대로 이루어진 건지 의문
 
 #### 3. 대화문 길이에 따른 요약문 길이 조정
 - **가설:** 대화문에 비례하여 요약문도 길어진다면 요약문의 길이를 대화문 길이에 맞춰 제한을 두면 어떨까?
@@ -225,9 +228,9 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 
 #### 4. 원칙없는 GT 공략을 위한 맞춤형 추가 조정
 - **가설:** 조사나 동사 어미 변형은 물론, 호칭만 해도 "Mr."와 "~씨" 등 종잡을 수가 없다. 왜 이럴까?<br>
-  하나, 여러 사람이 라벨링한 경우. 그래도 적어도 같은 사람은 같은 원칙과 맞춤법을 썼을 것이다.<br>
-  둘, 기계 번역을 돌렸을 경우. 사람이 라벨링을 안하고 일괄로 번역기를 돌렸다면, 번역이 왜 이랬다저랬다 했을까?<br>
-  혹시 글자수 제한이 있어서 프로그램이 정상적으로 문장을 마치려고 반말이 랜덤으로 튀어나오는게 아니었을까?
+하나, 여러 사람이 라벨링한 경우. 그래도 적어도 같은 사람은 같은 원칙과 맞춤법을 썼을 것이다.<br>
+둘, 기계 번역을 돌렸을 경우. 사람이 라벨링을 안하고 일괄로 번역기를 돌렸다면, 번역이 왜 이랬다저랬다 했을까?<br>
+혹시 글자수 제한이 있어서 프로그램이 정상적으로 문장을 마치려고 반말이 랜덤으로 튀어나오는게 아니었을까?
 - **결과:** 통계 기반의 11단계 동적 길이 제어 세분화, min_length는 아예 없애서 글자수가 남아 웅앵웅앵할 여지도 차단 후 리더보드 점수 상승
 
 #### 5. ROUGE의 중요도에 따른 가중치 적용
@@ -235,13 +238,13 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - **결과:** ROUGE-2 > ROUGE-L > ROUGE-1 순으로 MBR 가중치 적용 후 리더보드 점수 퀀텀점프
 
 #### 6. 평가데이터에 topic 생성
-- **가설:** topic 컬럼은 학습과 검증데이터에 존재하지만 용도가 없다. 그렇다면 평가데이터에도 topic 컬럼을 생성해보면 어떨까?
-- **결과:** Solar API로 학습데이터와 유사한 키워드 중심 topic을 생성하여 평가데이터에 추가, 리더보드 점수 상승
+- **가설:** topic 컬럼은 훈련과 검증데이터에 존재하지만 용도가 없다. 그렇다면 평가데이터에도 topic 컬럼을 생성해보면 어떨까?
+- **결과:** Solar API로 훈련데이터와 유사한 키워드 중심 topic을 생성하여 평가데이터에 추가, 리더보드 점수 상승
 
 #### 7. 불용어 사전 만들기
-- **가설:** 너무 짧은 대화, "안녕", "응 그래" 수준의 데이터는 요약할게 없어서 모델을 멍청하게 만들 수 있다. 그런 단어들을 빼버리고 학습시켜 볼까? 모델이 대화 전체 뉘앙스를 이해하는데에 오히려 방해가 될까?
-- **결과:** 시간 부족으로 테스트 불가<br><br>
-- 이외 시도된 가설들, 시도못한 가설들 매우 많으나 지면 관계로 생략
+- **가설:** 너무 짧은 대화, "안녕", "응 그래" 수준의 데이터는 요약할게 없어서 모델을 멍청하게 만들 수 있다. 그런 단어들을 빼버리고 훈련시켜 볼까? 모델이 대화 전체 뉘앙스를 이해하는데에 오히려 방해가 될까?
+- **결과:** 시간 부족으로 테스트 보류<br><br>
+- 이외 시도된 가설들, 시도 못한 가설들 매우 많으나 지면 관계로 생략
 
 ---
 
@@ -250,13 +253,13 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - **시도:** 요약 양쪽의 과다한 공백을 제거하기 위해 EOS 토큰 생성 유도 및 후처리 로직 최적화
 - **결과:** 리더보드에 0.003점 정도 기여? 😑
 
-#### nlp_ds_v1_baseline
+#### baseline
 - **증상:** code refectoring 후 검증 점수가 0.1940로 떨어짐
 - **원인:** ROUGE 대신 ROUGE Score 라이브러리를 사용함
 - **조치:** 운영진 평가 기준인 ROUGE 라이브러리의 동일 버전으로 원복
 - **교훈:** 누가 요즘은 ROUGE 안쓰고 ROUGE Score 쓴다고 했냐! 둘은 평가 결과가 다르고 대회의 룰은 무조건 지킵시다.
 
-#### nlp_ds_v1_yaml
+#### nlp_ds_v1
 - **증상:** 화자 태그(#Person#)가 &lt;unused68&gt; 같은 비정상 토큰과 깨진 한자(㗡)로 도배되어 있음
 - **원인:** clean_up_tokenization_spaces=True 설정으로 인한 decoding sequence 왜곡 및 한자 생성
 - **조치:** 해당 옵션 제거 및 정규표현식을 통한 비정상 토큰 후처리 로직 도입
@@ -264,13 +267,13 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 
 #### nlp_ds_v2 (Solar 10.7B)
 - **증상:** 모델을 LLM으로 올리니 필요한 라이브러리와 기존 torch가 궁합이 안 맞음
-- **조치:** CU124 기준으로 라이브러리를 설정했다가 CU121로 다운그레이드 했음에도 OOM 잡는데만 한참 걸림. 하이퍼파라미터 계속 튜닝해서 8번만에 성공 (e.g. gradient_accumulation_steps를 사용하여 batch size를 줄임)
+- **조치:** CU124 기준으로 라이브러리를 설정했다가 CU121로 다운그레이드 했음에도 OOM 잡는데만 한참 걸림. 하이퍼파라미터 계속 튜닝해서 8번만에 성공 (eg. gradient_accumulation_steps를 사용하여 batch size를 줄임)
 - **교훈:** 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 실험들을 대부분 포기해야 했다. 파라미터 107억개는 너무 큰 도박이었다. 107억원이 아닌 이상 모험하지 마라.
 
 #### nlp_ds_v3 (Solar 10.7B)
 - **증상:** 요약에 화자 태그 대신 대화 중의 이름만 사용
 - **교훈:** LLM은 너무 똑똑해서 문제. 이름으로 부르는게 자연스럽다고 스스로 판단하고 고집을 꺾지 않는다.<br><br>
-- **증상:** 학습시간이 너무 길어 (24시간 이상) 중도에 학습이 중단
+- **증상:** 훈련시간이 너무 길어 (24시간 이상) 중도에 훈련이 중단
 - **조치:** 검증로직 제외, 추론 분리, checkpoint 직접 지정해 추론 (optimizer.pt는 제외해도 무관)
 
 #### nlp_ds_v4 (KoBART)
@@ -297,159 +300,159 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 <table>
   <thead>
     <tr>
-      <th align="center">NO.</th>
-      <th align="center">DATE</th>
-      <th align="center">MODEL</th>
-      <th align="center">KEY CHANGES</th>
-      <th align="center">R1</th>
-      <th align="center">R2</th>
-      <th align="center">RL</th>
-      <th align="center">SCORE</th>
+      <th>NO.</th>
+      <th>DATE</th>
+      <th>MODEL</th>
+      <th>KEY CHANGES</th>
+      <th>R1</th>
+      <th>R2</th>
+      <th>RL</th>
+      <th>SCORE</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td align="center">60</td>
-      <td align="center">260311</td>
-      <td>KoBART+SolarAPI</td>
+      <td align="center">20260311</td>
+      <td>KoBART + SolarAPI</td>
       <td>검증 데이터 증강</td>
       <td align="center">0.5754</td>
       <td align="center">0.3848</td>
       <td align="center">0.4955</td>
-      <td align="center">48.5225</td>
+      <td align="center"><b>48.5225</b></td>
     </tr>
     <tr>
       <td align="center">59</td>
-      <td align="center">260310</td>
-      <td>KoBART+SolarAPI</td>
+      <td align="center">20260310</td>
+      <td>KoBART + SolarAPI</td>
       <td>긴 문자열 이상치 처리</td>
       <td align="center">0.5825</td>
       <td align="center">0.3932</td>
       <td align="center">0.5027</td>
-      <td align="center">49.2834</td>
+      <td align="center"><b>49.2834</b></td>
     </tr>
     <tr>
       <td align="center">58</td>
-      <td align="center">260310</td>
-      <td>KoBART+SolarAPI</td>
+      <td align="center">20260310</td>
+      <td>KoBART + SolarAPI</td>
       <td>평가데이터에 topic 적용</td>
       <td align="center">0.5825</td>
       <td align="center">0.3926</td>
       <td align="center">0.5021</td>
-      <td align="center">49.2413</td>
+      <td align="center"><b>49.2413</b></td>
     </tr>
     <tr>
       <td align="center">53</td>
-      <td align="center">260309</td>
+      <td align="center">20260309</td>
       <td>KoBART(digit82)</td>
       <td>요약문 길이 제한 세분화</td>
       <td align="center">0.5821</td>
       <td align="center">0.3933</td>
       <td align="center">0.5016</td>
-      <td align="center">49.2339</td>
+      <td align="center"><b>49.2339</b></td>
     </tr>
     <tr>
       <td align="center">50</td>
-      <td align="center">260309</td>
+      <td align="center">20260309</td>
       <td>KoBART(digit82)</td>
       <td>MBR 가중치 적용</td>
       <td align="center">0.5812</td>
       <td align="center">0.3913</td>
       <td align="center">0.4997</td>
-      <td align="center">49.0737</td>
+      <td align="center"><b>49.0737</b></td>
     </tr>
     <tr>
       <td align="center">34</td>
-      <td align="center">260306</td>
+      <td align="center">20260306</td>
       <td>Solar API</td>
       <td>프롬프트로 추론 생성</td>
       <td align="center">0.5443</td>
       <td align="center">0.3471</td>
       <td align="center">0.4695</td>
-      <td align="center">45.3636</td>
+      <td align="center"><b>45.3636</b></td>
     </tr>
     <tr>
       <td align="center">18</td>
-      <td align="center">260304</td>
+      <td align="center">20260304</td>
       <td>KoBART(digit82)</td>
       <td>모델 원복</td>
       <td align="center">0.5690</td>
       <td align="center">0.3762</td>
       <td align="center">0.4809</td>
-      <td align="center">47.5363</td>
+      <td align="center"><b>47.5363</b></td>
     </tr>
     <tr>
       <td colspan="8" align="center">. . .</td>
     </tr>
     <tr>
       <td align="center">07</td>
-      <td align="center">260302</td>
+      <td align="center">20260302</td>
       <td>KoSOLAR(yanolja)</td>
       <td>모델 변경</td>
       <td align="center">0.3586</td>
       <td align="center">0.1555</td>
       <td align="center">0.2901</td>
-      <td align="center">26.8082</td>
+      <td align="center"><b>26.8082</b></td>
     </tr>
     <tr>
       <td align="center">06</td>
-      <td align="center">260227</td>
-      <td>V2:EDA</td>
+      <td align="center">20260227</td>
+      <td>EDA</td>
       <td>정규표현식 후처리</td>
       <td align="center">0.4885</td>
       <td align="center">0.2913</td>
       <td align="center">0.3991</td>
-      <td align="center">39.2972</td>
+      <td align="center"><b>39.2972</b></td>
     </tr>
     <tr>
       <td align="center">05</td>
-      <td align="center">260227</td>
+      <td align="center">20260227</td>
       <td>KoBART(digit82)</td>
       <td>비정상 토큰 이슈 해결</td>
       <td align="center">0.5127</td>
       <td align="center">0.3229</td>
       <td align="center">0.4157</td>
-      <td align="center">41.7098</td>
+      <td align="center"><b>41.7098</b></td>
     </tr>
     <tr>
       <td align="center">04</td>
-      <td align="center">260226</td>
+      <td align="center">20260226</td>
       <td>KoBART(digit82)</td>
       <td>비정상 토큰 이슈 디버깅</td>
       <td align="center">0.3824</td>
       <td align="center">0.1746</td>
       <td align="center">0.3056</td>
-      <td align="center">28.7529</td>
+      <td align="center"><b>28.7529</b></td>
     </tr>
     <tr>
       <td align="center">03</td>
-      <td align="center">260226</td>
+      <td align="center">20260226</td>
       <td>KoBART(digit82)</td>
       <td>config 분리</td>
       <td align="center">0.2420</td>
       <td align="center">0.1469</td>
       <td align="center">0.1921</td>
-      <td align="center">19.3655</td>
+      <td align="center"><b>19.3655</b></td>
     </tr>
     <tr>
       <td align="center">02</td>
-      <td align="center">260226</td>
+      <td align="center">20260226</td>
       <td>KoBART(digit82)</td>
       <td>refactoring</td>
       <td align="center">0.5691</td>
       <td align="center">0.3760</td>
       <td align="center">0.4808</td>
-      <td align="center">47.5295</td>
+      <td align="center"><b>47.5295</b></td>
     </tr>
     <tr>
       <td align="center">01</td>
-      <td align="center">260226</td>
+      <td align="center">20260226</td>
       <td>KoBART(digit82)</td>
       <td>baseline code</td>
       <td align="center">0.5676</td>
       <td align="center">0.3737</td>
       <td align="center">0.4807</td>
-      <td align="center">47.4018</td>
+      <td align="center"><b>47.4018</b></td>
     </tr>
   </tbody>
 </table>
@@ -460,7 +463,7 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 
 ## **🚀 Result**
 ### Champion Model Info
-- **Version:** V7 (KoBART)
+- **Version:** V7 (KoBART & SolarAPI)
 - **Training Time:** 5h 30m (approx. 1h per fold)
 - **Time per Epoch:** 3m 23s
 - **Accuracy:** 49.2834
@@ -478,7 +481,7 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 ## **📜 Version Log**
 [[Releases] Download Source Code for Each Version](https://github.com/karmakaryx/nlp-dialogue-summarization/releases)
 ### V1: digit82/kobart-summarization
-> **nlp_ds_v1_baseline.py:**
+> **baseline.py:**
 - Jupyter Notebook을 Python script로 변환하며 발생하는 warnings & runtime errors 해결
 - code formatting: PEP 8 적용
 - code refactoring: 중복코드 제거 등
@@ -487,9 +490,9 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 
 > **nlp_ds_v1_yaml.py:**
 - config 설정값 .yaml 파일로 관리
-- 명명된 개체 보존을 위해 학습데이터 기준으로 화자, 개인정보 마스킹도 yaml에 모두 추가
+- 명명된 개체 보존을 위해 훈련데이터 기준으로 화자, 개인정보 마스킹도 yaml에 모두 추가
 - 실험명, 로그명, 환경파일명 등을 파일명, UTC와 동기화하여 자동화
-- WandB로 checkpoint upload 중지
+- W&B로 checkpoint upload 중지
 - hyperparameter 수정: batch size, gradient steps
 - 데이터 로딩 방식 변경: on-the-fly tokenization
 - tokenizer 공백 자동 정리 적용
@@ -500,42 +503,43 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - 본격 EDA를 위해 Jupyter Notebook 파일로 분리
 - tokenizer 공백 자동 정리 로직 제거 & 정규표현식 후처리
 - model 중복 호출 제거
-- WandB 로그 범위 확대
+- W&B 로그 범위 확대
 - yaml 파일명 정책 변경, yaml 환경 설정 파라미터 값 분류 및 정리
 
 > **nlp_ds_v2_train.py:**
 - 양자화(BitsAndBytes)와 LoRA 설정
-- 학습시간이 너무 길어 모델이 자주 터져 detached tmux session에서 실행
+- 훈련시간이 너무 길어 모델이 자주 터져 detached tmux session에서 실행
 - 문장이 완성(EOS 토큰 발생)되면 즉시 추론을 종료하도록 num_beams 크기 조절<br><br>
 - 이후 Solar 10.7B 적용 과정에서 5일을 소모하고도 실험 완전 실패로 시간에 쫓겨 버전별 로그 작성 시간 확보 불가,<br>
-  자세한 버전별 변경사항은 archive와 code 디렉토리 참조
+  자세한 버전별 변경사항은 code 및 상단 Releases 링크 참조
 
 ---
 
 ## **⚙️ Components**
 ### Pipeline
+![pipeline](./assets/pipeline.png)
 
 ### Directory
 ```
+├── archive/...                # legacy files
 ├── assets/...                 # README images & PDF
 ├── code/
-│   ├── eda.ipynb              # EDA Notebook
 │   ├── baseline.py            # baseline code
-│   ├── nlp_ds_v6_fail.py      # v6 (GroupKFold)
-│   ├── nlp_ds_v6.py           # v6
-│   ├── nlp_ds_v7_final.py     # v7 (final)
+│   ├── eda.ipynb              # EDA Notebook
+│   ├── nlp_ds_v1_yaml.py      # v1 ~ v7
+│   ├── ...
 │   ├── solar_api_summary.py   # Solar API call (summary)
 │   └── solar_api_topic.py     # Solar API call (topic)
 ├── config/                    # hyperparameter 설정
-│   ├── nlp_ds_v6.yaml
-│   └── nlp_ds_v7_final.yaml
+│   ├── nlp_ds_v1.yaml         # v1 ~ v7
+│   └── ...
 ├── data/                      # (GitHub 관리 제외)
 │   ├── dev_solar.csv          # Solar API로 증강한 dev summary & topic
 │   ├── dev.csv                # 검증데이터
 │   ├── sample_submission.csv  # 제출파일 template
 │   ├── test_solar.csv         # Solar API로 생성한 test topic
 │   ├── test.csv               # 평가데이터
-│   └── train.csv              # 학습데이터
+│   └── train.csv              # 훈련데이터
 ├── output/                    # (GitHub 관리 제외)
 │   ├── checkpoint-####/...    # 모델 가중치 저장
 │   ├── logs/...               # W&B & logs
@@ -560,9 +564,11 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 ### Role & Project Management
 - **역할:** 팀장 (Project Lead) & Main System Architect
 - **협업방식:** Slack 채널 중심의 일정 관리 및 의견 공유. 대회이므로 각자 개발하여 리더보드 제출 (최소 제출 횟수 의무화)
-- **기여도 (80%):** 프로젝트 일정 관리, End-to-End 파이프라인 설계, 단독 개발 및 실험, Git 구축, 최종 산출물 작성 (팀원은 데이터 시각화 지원), 세미나 발표
+- **기여도 (70%):** 프로젝트 일정 관리, End-to-End 파이프라인 설계, 단독 개발 및 실험, Git 구축, 최종 산출물 작성 (팀원은 데이터 시각화 지원), 세미나 발표
+- **전략 및 성과:** 지난 대회와 동일한 팀 구성이었고 성과가 좋았기에 동일 전략으로 팀장으로서 대회 2연승 달성!<br>
+특히 기존에 타 팀에서 소극적이었던 팀원들이 직전 대회 우승 경험으로 자립심을 기른 덕분에 일일 제출횟수가 부족해질 정도의 적극적인 참여로 모든 팀원이 대회 중 1회 이상의 1위를 경험하며 탄탄한 팀워크를 증명함.
 
 ### Project Retrospective
-이번 대회는 아무리 논리적으로 합당한 가설을 시도해도 점수가 더 떨어지는 특이한 대회였는데요, 영어처럼 단어별로 띄어쓰기가 명확히 분리되지 않고 조사와 동사 어미 변화가 심한 한국어와 ROUGE 평가지표가 궁합이 맞지 않는게 첫번째 원인이 아니었나 싶습니다. 어쩌면 이 대회는 현실세계 데이터가 얼마나 지저분하고 종잡을 수 없는지, 언어라는게 얼마나 유동적이고 변칙적인지, 좋은 NLP 모델을 만드는게 얼마나 힘들고 수많은 랜덤 변수를 고려해야 하는지, 이론과 다른 그 실전의 쓴맛을 체험시켜 주는게 목적인 대회가 아니었나 싶습니다ㅠ
+이번 대회는 아무리 논리적으로 합당한 가설을 시도해도 점수가 더 떨어지는 특이한 대회였는데요, 영어처럼 단어별로 띄어쓰기가 명확히 분리되지 않고 조사와 동사 어미 변화가 심한 한국어와 ROUGE 평가지표가 궁합이 맞지 않는게 첫번째 원인이 아니었나 싶습니다. 어쩌면 이 대회는 현실세계 데이터가 얼마나 지저분하고 종잡을 수 없는지, 언어라는게 얼마나 유동적이고 변칙적인지, 좋은 NLP 모델을 만드는게 얼마나 힘들고 수많은 랜덤 변수를 고려해야 하는지, 이론과 다른 실전의 쓴맛을 체험시켜 주는게 목적인 대회가 아니었나 싶습니다ㅠ
 
 <br>
