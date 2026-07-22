@@ -196,14 +196,15 @@ python-dotenv==1.0.1                              wordcloud==1.9.6
 - 구조: Decoder-only (Causal LM)
 - 학습목표: 다음 토큰 예측 (Next Token Prediction)
 - yanolja: Upstage 기술력 + 야놀자의 여행, 숙박 데이터로 학습시켜 한국어 문맥 파악 능력과 지시사항 이행 능력 우수
-- 단점: LLM급 괴물 덩치라 1epoch 돌려보고 fine tuning 포기 (3090 기준 28시간..)
+- 단점: LLM급 괴물 덩치라 1epoch 돌려보고 fine tuning 포기 (3090 기준 28시간..)<br>
+당연히 QLoRA 기준이며, 10.7B급 모델의 pretraining은 산업 규모의 컴퓨팅 자원이 필요하므로 현실적으로 불가능
 
 ### Modeling Process
 - full seed fixing: CUDA 결정론적 알고리즘 적용
 - 최대 문자열까지 안정적으로 담기 위해 encoder 1024, decoder 256 변경
 - 일반화 성능을 향상하고 검증데이터를 증강에 활용하기 위해 K-Fold 적용
-- 하이퍼파라미터의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
-- 문장 길이 관련 하이퍼파라미터 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, early_stopping)
+- KoBART hyperparameter의 max_length는 토큰 개수이며 special token은 1토큰으로 처리됨을 확인, 요약문 길이 단위를 토큰으로 변경 후 3단계 길이 제한을 quantile 10%씩으로 세분화
+- 문장 길이 관련 hyperparameter 조정하여 문장을 되도록 짧게 끝마치도록 유도 (length_penalty, early_stopping)
 - 영어 번역이므로 반복은 허용하되 (no_repeat_ngram_size) 되도록 자제하도록 유도 (repetition_penalty)
 - 그래도 문장이 끊기는 경우 종결 문장 부호를 기준으로 정규식을 적용하여 제거
 - ROUGE 중요도에 따라 MBR (Minimum Bayes Risk) 가중치 적용
@@ -268,7 +269,8 @@ GT 데이터의 품질 검수가 제대로 이루어진 건지 의문
 #### nlp_ds_v2 (Solar 10.7B)
 - **증상:** 모델을 LLM으로 올리니 필요한 라이브러리와 기존 torch가 궁합이 안 맞음
 - **조치:** CU124 기준으로 라이브러리를 설정했다가 CU121로 다운그레이드 했음에도 OOM 잡는데만 한참 걸림. 하이퍼파라미터 계속 튜닝해서 8번만에 성공 (eg. gradient_accumulation_steps를 사용하여 batch size를 줄임)
-- **교훈:** 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 실험들을 대부분 포기해야 했다. 파라미터 107억개는 너무 큰 도박이었다. 107억원이 아닌 이상 모험하지 마라.
+- **교훈:** 모델을 변경하면서 시행착오가 엄청나서 계획해 둔 실험들을 대부분 포기해야 했다. 파라미터 107억개는 너무 큰 도박이었다. 107억원이 아닌 이상 모험하지 마라.<br>
+모델이 크다고 무조건 좋은 게 아니라 용도와 데이터 규모에 맞는 모델을 고르는 게 중요하다. 대화 요약처럼 태스크가 비교적 명확하고 데이터도 12,457건으로 크지 않은 상황에서 LLM급은 과유불급
 
 #### nlp_ds_v3 (Solar 10.7B)
 - **증상:** 요약에 화자 태그 대신 대화 중의 이름만 사용
@@ -474,7 +476,7 @@ GT 데이터의 품질 검수가 제대로 이루어진 건지 의문
 ![leaderboard_final](./assets/leaderboard_final.png)
 
 ### Presentation
-- [[PDF] NLP Seminar Presentation](./assets/semiar_nlp.pdf)
+- [[PDF] NLP Seminar Presentation](./assets/seminar_nlp.pdf)
 
 ---
 
@@ -510,7 +512,7 @@ GT 데이터의 품질 검수가 제대로 이루어진 건지 의문
 - 양자화(BitsAndBytes)와 LoRA 설정
 - 훈련시간이 너무 길어 모델이 자주 터져 detached tmux session에서 실행
 - 문장이 완성(EOS 토큰 발생)되면 즉시 추론을 종료하도록 num_beams 크기 조절<br><br>
-- 이후 Solar 10.7B 적용 과정에서 5일을 소모하고도 실험 완전 실패로 시간에 쫓겨 버전별 로그 작성 시간 확보 불가,<br>
+- 이후 Solar 10.7B 적용 과정에서 시행착오 포함 5일을 소모하고도 실험 완전 실패로 시간에 쫓겨 버전별 로그 작성 시간 확보 불가,<br>
   자세한 버전별 변경사항은 code 및 상단 Releases 링크 참조
 
 ---
